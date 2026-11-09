@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CX: The Creator Exchange</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<meta name="description" content="Every creator is a company. Fans and investors buy shares in a creator's business at the IPO, trade them, and get a dividend from its profit every quarter.">
+<meta property="og:title" content="CX: The Creator Exchange">
+<meta property="og:description" content="See what any creator's channel is worth, and how a creator IPO works.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Libre+Caslon+Text:wght@400;700&display=swap">
+<style>
+@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}} /* a quick cross-fade between CX pages; browsers without it just navigate */
+::view-transition-old(root),::view-transition-new(root){animation-duration:150ms}
+/* High-end and quiet: near-black, one off-white ink, hairlines instead of boxes, the brand serif for headlines,
+   small spaced capitals for labels, and colour only where it means something (prices up or down). */
+:root{
+  color-scheme:dark;
+  --page:#000; --paper:#000; --ink:#eceef1; --ink-2:#b4b9c2; --muted:#878d97; --faint:#737985; --line:#1b1f26; --line-2:#2a2f37; --soft:#14181d;
+  --link:#eceef1; --bar:#c9cdd4; --track:#1b1f26; --warn:#f0a43a; --up:#1fbf75; --down:#f0475a;
+  --serif:"Libre Caslon Text",Georgia,"Times New Roman",serif; --sans:"Inter",-apple-system,"Segoe UI",Roboto,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --navy:#eceef1; --navy-ink:#0a0c0f;
+  --press:70ms; --fast:150ms; --ui:240ms; --enter:400ms; --ease:cubic-bezier(.2,0,.38,.9); --ease-enter:cubic-bezier(0,0,.38,.9); /* motion tokens */
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--page);color:var(--ink);font:15.5px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1160px;margin-inline:auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:400} p{margin:0}
+a{color:var(--link);text-underline-offset:3px;text-decoration-color:var(--muted)} a:hover{text-decoration-color:currentColor}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:1px solid var(--ink);outline-offset:3px}
+.muted{color:var(--muted)} .up{color:var(--up)} .down{color:var(--down)}
+.n{font-variant-numeric:tabular-nums}
+.label,.eyebrow{font:500 11px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+
+.strip{color:var(--faint);font-size:11.5px;letter-spacing:.02em;border-bottom:1px solid var(--line)}
+.strip .wrap{display:flex;flex-wrap:wrap;gap:4px 18px;align-items:center;padding-block:8px}
+.strip b{color:var(--muted);font-weight:500}
+.strip a{color:var(--muted);text-decoration:none} .strip a:hover{color:var(--ink)}
+.strip .r{margin-left:auto;display:flex;gap:18px}
+header{background:rgba(0,0,0,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+header .wrap{display:flex;align-items:center;gap:10px 30px;flex-wrap:wrap;padding-block:16px}
+.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
+.seal{width:30px;height:30px;display:grid;place-items:center;color:var(--ink)}
+.seal svg{width:30px;height:30px}
+.wm{display:block;font:700 22px/1 var(--serif)}
+.tagline{display:block;font:400 9.5px/1 var(--serif);letter-spacing:.32em;color:var(--ink-2);margin-top:6px;white-space:nowrap}
+nav{display:flex;gap:4px 26px;flex-wrap:wrap;margin-left:auto;font-size:13.5px}
+nav a{color:var(--ink-2);text-decoration:none;white-space:nowrap;padding-block:3px;background:linear-gradient(currentColor,currentColor) no-repeat 0 100%/0 1px;transition:background-size var(--ui) var(--ease),color var(--fast) var(--ease)}
+nav a:hover,nav a.on{color:var(--ink);background-size:100% 1px} /* .on = the section on screen */
+[id]{scroll-margin-top:90px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border:1px solid var(--ink);background:var(--ink);color:var(--page);font-weight:500;font-size:14px;letter-spacing:.01em;text-decoration:none;cursor:pointer;min-height:44px;border-radius:2px;transition:background-color var(--fast) var(--ease),color var(--fast) var(--ease),border-color var(--fast) var(--ease),transform var(--press) var(--ease)}
+.btn:hover{background:transparent;color:var(--ink)} .btn:active{transform:scale(.98)}
+.btn.alt,header .btn{background:transparent;color:var(--ink);border-color:var(--line-2)} .btn.alt:hover,header .btn:hover{border-color:var(--ink)}
+header .btn{min-height:38px;padding:8px 16px}
+.btn:disabled{opacity:.6;cursor:progress}
+.more{color:var(--ink);text-decoration:none;font-size:14px;display:inline-flex;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid transparent;transition:border-color var(--fast) var(--ease)} .more:hover{border-bottom-color:var(--ink)}
+.more span[aria-hidden]{display:inline-block;transition:transform var(--fast) var(--ease)} .more:hover span[aria-hidden]{transform:translateX(3px)}
+::selection{background:var(--ink);color:var(--page)}
+
+/* The hero: type only. The headline rises word by word once the intro lets go; a live price tape runs along its bottom edge. */
+.hero{display:flex;flex-direction:column;min-height:clamp(560px,calc(100svh - 108px),960px)}
+.hero .wrap{flex:1;width:100%;display:flex;flex-direction:column;justify-content:center;padding-block:clamp(36px,7svh,72px) clamp(32px,6svh,64px)} /* short screens keep the tape in view */
+.hero .eyebrow{margin-bottom:34px}
+.hero h1{font:400 clamp(48px,9.2vw,140px)/1.02 var(--serif);letter-spacing:-.035em;max-width:9.4em}
+.hero h1 em{font-style:italic}
+.hero .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .08em .14em;margin:0 -.08em -.14em} /* each word rises out of its own slot */
+.hero .w>span{display:inline-block}
+.hero .rule{height:1px;background:var(--line-2);margin:44px 0 32px;transform-origin:left}
+.hero .row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:24px 48px;align-items:start} /* the ask sits beside what it asks about */
+.hero p.lede{font-size:18px;line-height:1.65;color:var(--ink-2);max-width:31em}
+.ctas{display:flex;gap:28px;flex-wrap:wrap;align-items:center}
+.hero .ctas{gap:12px 28px;padding-top:2px}
+.ticker{display:flex;border-block:1px solid var(--line);font-size:12.5px;white-space:nowrap}
+.tk-vp{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+.ticker-in{display:flex;width:max-content;animation:marquee var(--dur,60s) linear infinite}
+.ticker:hover .ticker-in,.ticker:focus-within .ticker-in,html.prices-paused .ticker-in{animation-play-state:paused}
+.ticker .half,.ticker .tape-copy{display:flex}
+.ticker a{display:inline-flex;gap:12px;align-items:baseline;padding:14px 28px;color:var(--ink-2);text-decoration:none;border-right:1px solid var(--line);transition:background-color var(--fast) var(--ease),color var(--fast) var(--ease)}
+.ticker a:hover{color:var(--ink);background:var(--soft)}
+.ticker b{font:600 11.5px var(--sans);letter-spacing:.1em;color:var(--ink)}
+.ticker .tk-btn{flex:none;border-left:1px solid var(--line);padding:0 24px;font-size:12px;color:var(--muted);text-decoration:none} .ticker .tk-btn:hover{color:var(--ink)}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* The sections share one width, one type scale and the "01 / 06" counter, but each takes the shape of what it holds:
+   a wide board, a sequence, a split tool, a report, a centred form, an editorial rail. */
+.plate{border-top:1px solid var(--line)}
+.plate>.wrap{padding-block:96px}
+.pl .no{font:500 11px/1 var(--mono);letter-spacing:.12em;color:var(--muted)} .pl .no i{font-style:normal;color:var(--faint)}
+.pl h2{font:400 42px/1.05 var(--serif);letter-spacing:-.015em;margin:18px 0 16px}
+.pl p{font-size:14px;line-height:1.65;color:var(--muted);max-width:34em}
+.pl a{color:var(--ink-2)}
+.pc{min-width:0}
+
+/* 01 the market: a wide board, the title and the index facing each other across the top */
+#market>.wrap{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px 32px;padding-block:80px 72px}
+#market .pc{display:contents}
+#market .pl{grid-column:1/span 6;align-self:end}
+#market .pl p{margin-bottom:4px}
+.idx{grid-column:7/-1;align-self:end;display:flex;align-items:baseline;justify-content:flex-end;flex-wrap:wrap;gap:6px 18px;text-align:right}
+.idx b{font:400 84px/1 var(--serif);letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.idx .label{flex-basis:100%} .idx .ch{font-size:14px}
+#market .mk,#market .mft,#market .about{grid-column:1/-1}
+.mk{width:100%;border-collapse:collapse;font-size:14.5px;border-top:1px solid var(--line-2);margin-top:16px}
+.mk col.c-spark{width:180px} .mk col.c-px{width:140px} .mk col.c-ch{width:110px}
+.mk td{padding:17px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+.mk td+td{padding-left:20px} .mk td:first-child{padding-left:10px} .mk td:last-child{padding-right:10px}
+.mk a{color:inherit;text-decoration:none} .mk tr:hover td{background:var(--soft)} .mk tr[data-href]{cursor:pointer}
+.sym{font:600 12.5px var(--sans);letter-spacing:.08em;display:inline-block;min-width:58px}
+.spark{display:block}
+.mft{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:12px;color:var(--faint)}
+.mft a{color:var(--ink-2);text-underline-offset:3px} .mft .r{margin-left:auto}
+#market .about{font-size:12px;color:var(--faint);margin-top:-6px}
+
+/* 02 how a listing works: the four steps read left to right, each anchored by its numeral */
+#how>.wrap{padding-block:88px}
+#how .pl{margin-bottom:48px}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;margin:0;padding:0;list-style:none}
+.steps li{border-top:1px solid var(--line-2);padding-top:20px}
+.steps .k{display:block;font:400 44px/1 var(--serif);letter-spacing:-.01em;color:var(--faint)}
+.steps h3{font:400 24px/1.15 var(--serif);margin:22px 0 10px}
+.steps p{font-size:14px;line-height:1.65;color:var(--muted)}
+.ex{margin-top:56px;border-top:1px solid var(--line-2)}
+
+/* disclosures: the worked example and every FAQ answer */
+.disc{border-bottom:1px solid var(--line)}
+.disc>summary{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:22px 0;cursor:pointer;list-style:none;font:400 20px/1.3 var(--serif);color:var(--ink-2);transition:color var(--fast) var(--ease)}
+.disc>summary::-webkit-details-marker{display:none}
+.disc>summary:hover,.disc[open]>summary{color:var(--ink)}
+.disc>summary::after{content:"+";font:300 22px/1 var(--sans);color:var(--muted);transition:transform var(--fast) var(--ease)}
+.disc[open]>summary::after{transform:rotate(45deg)}
+.disc>p{margin:0;padding:0 0 24px;color:var(--muted);max-width:44em;line-height:1.7}
+@supports selector(::details-content) and (interpolate-size:allow-keywords){ /* answers slide open; elsewhere they just open */
+  .disc{interpolate-size:allow-keywords}
+  .disc::details-content{block-size:0;overflow:hidden;transition:block-size var(--ui) var(--ease),content-visibility var(--ui) allow-discrete}
+  .disc[open]::details-content{block-size:auto}
+}
+.qa{border-top:1px solid var(--line-2)}
+.more-q>summary{font:500 13px/1.3 var(--sans);letter-spacing:.02em;color:var(--ink-2)}
+.more-q[open]{border-bottom:0} .more-q[open]>summary{border-bottom:1px solid var(--line)}
+
+/* worked example */
+.calc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px 32px;padding:8px 0}
+.calc>div{border-top:1px solid var(--line-2);padding-top:22px;min-width:0}
+.calc .k{font:400 14px var(--serif);color:var(--muted)}
+.calc h3{font:400 24px/1.2 var(--serif);margin:14px 0 16px}
+.calc table{width:100%;border-collapse:collapse;font-size:13.5px}
+.calc td{padding:10px 0;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:top}
+.calc td.n{text-align:right;color:var(--ink-2);white-space:nowrap;padding-left:12px}
+.calc tr.t td{color:var(--ink);border-bottom:0;border-top:1px solid var(--line-2);font-weight:500}
+.calc p{font-size:13px;color:var(--muted);line-height:1.6;margin-top:14px}
+.callout{margin:40px 0 32px;border-left:1px solid var(--ink);padding:4px 0 4px 20px;max-width:46em;color:var(--ink-2);font-size:15px;line-height:1.65}
+.callout b{color:var(--ink);font-weight:500}
+
+/* 03 what's your channel worth: a split workspace, the ask on the left and the answer on the right */
+#value>.wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:36px 56px;padding-block:96px}
+#value .pc{display:contents}
+#value .pl{grid-column:1;grid-row:1}
+#vform{grid-column:1;grid-row:2}
+#vout{grid-column:2;grid-row:1/span 2;border-left:1px solid var(--line);padding-left:56px}
+form.f{display:flex;flex-direction:column;gap:18px}
+.fld{display:flex;flex-direction:column;gap:8px}
+.fld label{font:500 10.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.fld input,.fld select,.fld textarea{padding:11px 0;border:0;border-bottom:1px solid var(--line-2);background:transparent;min-height:44px;border-radius:0;font-size:15px;transition:border-color var(--fast) var(--ease)}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:0;border-bottom-color:var(--ink)}
+.fld select{background:var(--page)} .fld textarea{resize:vertical}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--faint)}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.hint{font-size:12.5px;line-height:1.6;color:var(--faint)}
+.err{color:var(--down);font-size:13.5px}
+form.f .btn{align-self:flex-start;margin-top:8px}
+.result{min-width:0}
+.empty{padding:40px 8px;color:var(--faint);text-align:center;font:400 18px var(--serif)}
+.result>.empty{border-top:1px solid var(--line-2);min-height:160px;display:grid;place-items:center;padding:24px}
+.result>.empty.initial{border:0;min-height:0;display:block;place-items:normal;padding:6px 0 0;text-align:left} /* a faint outline of the answer to come */
+.initial p{margin-top:10px}
+.result .eyebrow{margin-bottom:18px}
+.result .big{font:400 clamp(40px,4.6vw,60px)/1.02 var(--serif);letter-spacing:-.02em;margin-top:6px}
+.result table{width:100%;border-collapse:collapse;font-size:14px;margin:22px 0}
+.result td{padding:11px 0;border-bottom:1px solid var(--line)}
+.result td.n{text-align:right}
+.track{height:2px;background:var(--track);margin-top:8px;overflow:hidden}
+.track i{display:block;height:100%;background:var(--bar)}
+.raise{border-top:1px solid var(--line-2);padding:22px 0 4px;margin:18px 0 6px;display:flex;flex-direction:column;gap:14px}
+.raise b{font:400 22px var(--serif)}
+.raise .row2 select{min-height:40px;padding:8px 10px;border:1px solid var(--line-2);border-radius:2px;background:var(--page)}
+
+/* 04 CX Research: one very large number anchors a short report */
+#research .pl{margin-bottom:48px}
+#research .pc{display:grid;grid-template-columns:240px minmax(0,1fr);gap:24px 56px;align-items:start}
+.figs{display:grid;gap:40px;margin:0;grid-row:1/span 2}
+.figs dt{font:500 10.5px/1.6 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.figs dd{margin:14px 0 0;font:400 48px/1 var(--serif);letter-spacing:-.02em}
+#k-creators{font-size:112px;letter-spacing:-.04em}
+#research .xscroll,#research .below{grid-column:2}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font:500 10.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 0 14px;border-bottom:1px solid var(--line-2)}
+.tbl td{padding:16px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:18px}
+.tbl td small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
+.tbl tr[data-href]{cursor:pointer} .tbl tr[data-href]:hover td{background:var(--soft)}
+.tbl a{color:var(--ink);text-decoration:none} .tbl a:hover{text-decoration:underline;text-underline-offset:3px}
+.tbl .rk{color:var(--muted);width:34px}
+.below{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px;align-items:center;font-size:12.5px;color:var(--muted)}
+.xscroll{overflow-x:auto}
+
+/* the film: one framed 16:9 video under the hero, plays muted and loops; still frame + controls for reduced motion */
+.film>.wrap{padding-block:40px 24px}
+.film video{display:block;width:100%;aspect-ratio:16/9;background:#000;border:1px solid var(--line-2);border-radius:3px}
+.film-cap{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12.5px;color:var(--muted)}
+/* 05 waitlist: one centred column, a quiet moment before the questions */
+#join>.wrap{max-width:720px;padding-block:112px}
+#join .pl{text-align:center;margin-bottom:40px}
+#join .pl p{max-width:44ch;margin-inline:auto}
+#join .roles{justify-content:center;margin-bottom:12px} #join .roles legend{margin-inline:auto} /* "I'm a…" sits on the same centre line as the heading */
+.roles{display:flex;gap:10px;flex-wrap:wrap;border:0;padding:0;margin:0}
+.roles legend{font:500 10.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.roles label{display:flex;align-items:center;gap:10px;border:1px solid var(--line-2);padding:10px 16px;cursor:pointer;min-height:44px;border-radius:2px;font-size:14px;color:var(--ink-2);transition:border-color var(--fast) var(--ease),color var(--fast) var(--ease)}
+.roles input{accent-color:var(--ink)}
+.roles label:has(input:checked){border-color:var(--ink);color:var(--ink)}
+.ok{border-top:1px solid var(--ink);padding:22px 0;font-size:15px}
+.ok b{font:400 24px var(--serif);display:block;margin-bottom:6px}
+
+/* 06 questions: the one section that keeps a sticky label rail */
+#faq>.wrap{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,8fr);gap:64px;padding-block:88px}
+#faq .qa{max-width:760px}
+#faq .pl{position:sticky;top:112px;align-self:start}
+
+footer{border-top:1px solid var(--line);padding-block:56px 64px;font-size:12px;line-height:1.7;color:var(--faint)}
+footer p{max-width:72em}
+
+/* skip link and the phone menu */
+.skip{position:absolute;left:12px;top:-80px;z-index:300;background:var(--ink);color:var(--page);padding:10px 16px;border-radius:2px;font-size:14px;text-decoration:none}
+.skip:focus{top:12px}
+.menu-btn{display:none;align-items:center;gap:8px;min-height:44px;padding:8px 14px;background:transparent;border:1px solid var(--line-2);border-radius:2px;color:var(--ink);font-size:13px;cursor:pointer}
+.menu-btn i{display:block;width:14px;height:1px;background:currentColor;box-shadow:0 -4px 0 currentColor,0 4px 0 currentColor}
+nav .m-only{display:none} header .btn .short{display:none}
+main:focus{outline:0}
+/* disclosures sit next to the claims they qualify, in plain view */
+.fine{margin-top:26px;font-size:12.5px;letter-spacing:.02em;color:var(--muted)}
+.chip{font:500 9.5px/1 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line-2);padding:4px 6px;border-radius:2px;white-space:nowrap;margin-left:10px;vertical-align:1px}
+.lnk{background:none;border:0;padding:0;font:inherit;color:var(--ink-2);cursor:pointer;text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px;min-height:24px}
+.lnk:hover{color:var(--ink);text-decoration-color:var(--ink)}
+details.about summary{cursor:pointer;color:var(--ink-2);list-style:none} details.about summary::-webkit-details-marker{display:none}
+details.about summary::after{content:" +";color:var(--muted)} details.about[open] summary::after{content:" –"}
+details.about p{margin:10px 0 2px;line-height:1.6;color:var(--muted);font-size:12px;max-width:44em}
+/* footer columns */
+footer .cols{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));gap:32px;margin-bottom:40px}
+footer h4{font:500 10.5px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:6px 0 16px}
+footer .cols a:not(.brand){display:block;color:var(--ink-2);text-decoration:none;font-size:13px;padding:5px 0} footer .cols a:not(.brand):hover{color:var(--ink)}
+footer .asof{margin-top:16px}
+.ferr{margin-top:-6px}
+.result .chip{display:inline-block;margin:0 0 20px}
+
+@media (max-width:1100px){.calc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1000px){
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 28px}
+  #research .pc{grid-template-columns:minmax(0,1fr)} .figs{grid-row:auto;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-bottom:24px}
+  #k-creators{font-size:88px} #research .xscroll,#research .below{grid-column:auto}
+}
+@media (max-width:900px){
+  .hero{min-height:0} .hero .wrap{padding-block:56px 48px} .hero .rule{margin:32px 0 24px} .hero .row{grid-template-columns:minmax(0,1fr)}
+  .plate>.wrap,#market>.wrap,#how>.wrap,#value>.wrap,#join>.wrap,#faq>.wrap{padding-block:64px}
+  .pl h2{font-size:34px}
+  #market>.wrap,#value>.wrap,#faq>.wrap{grid-template-columns:minmax(0,1fr)}
+  #market .pl,.idx,#value .pl,#vform,#vout{grid-column:auto;grid-row:auto}
+  .idx{justify-content:flex-start;text-align:left}
+  #vout{border-left:0;padding-left:0}
+  #faq>.wrap{gap:32px} #faq .pl{position:static}
+  footer .cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+  nav{margin-left:0;width:100%;overflow-x:auto;flex-wrap:nowrap;order:3}
+  header{position:relative}
+}
+@media (max-width:767px){ /* phones: logo, waitlist and a Menu button; the sections live in the menu */
+  .menu-btn{display:inline-flex} nav{display:none!important}
+  header.open nav{display:flex!important;flex-direction:column;gap:0;width:100%;order:3;overflow:visible;font-size:15px;padding-bottom:6px}
+  header.open nav a{padding:13px 0;border-top:1px solid var(--line);min-height:48px;display:flex;align-items:center} nav .m-only{display:flex}
+  header .btn .long{display:none} header .btn .short{display:inline} /* logo, Waitlist and Menu fit one row */
+  .menu-btn{padding:8px 11px}
+  .strip .r{display:none} /* the same links are in the menu */
+}
+@media (max-width:600px){ /* steps stack, numeral beside the words */
+  .steps{grid-template-columns:minmax(0,1fr);gap:24px}
+  .steps li{display:grid;grid-template-columns:32px minmax(0,1fr);column-gap:12px}
+  .steps .k{grid-row:1/span 2;font-size:15px;color:var(--muted);padding-top:5px}
+  .steps h3{margin:0 0 8px}
+}
+@media (max-width:360px){.mk .spark{display:none}} /* the smallest phones keep price and change, lose the sparkline */
+@media (max-width:520px){.menu-btn{width:44px;justify-content:center;padding:0} .menu-btn .mt{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)} /* icon only; "Menu" stays its name */
+  .calc{grid-template-columns:minmax(0,1fr)} .tbl .hide-s,.mk .hide-s{display:none} .row2{grid-template-columns:minmax(0,1fr)}
+  .hero .wrap{padding-block:40px} .hero .ctas{gap:8px 24px}
+  .plate>.wrap,#market>.wrap,#how>.wrap,#value>.wrap,#join>.wrap,#faq>.wrap{padding-block:56px}
+  .pl h2{font-size:30px} .idx b{font-size:56px}
+  .mk{table-layout:fixed} .mk col.c-sym{width:60px} .mk col.c-spark{width:auto} .mk col.c-px{width:70px} .mk col.c-ch{width:72px} /* stays inside the gutter */
+  .mk td:first-child{padding-left:0} .mk td+td{padding-left:8px} .mk td:last-child{padding-right:0} .sym{min-width:0} .mk .spark{width:100%;max-width:120px}
+  #k-creators{font-size:56px} .figs dd{font-size:32px}
+  footer .cols{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px} footer .cols>div:first-child,footer .cols>div:last-child{grid-column:1/-1}
+  header .wrap{gap:10px 12px} header .btn{margin-left:auto;min-height:36px;padding:6px 12px;font-size:13px} .tagline{letter-spacing:.24em}}
+
+/* Motion, kept short and to the point: the headline rises once when the intro lets go (html.intro-lock holds it), prices
+   flash when they move, a finished estimate settles in, answers slide open. Nothing on the page waits to appear. */
+.prog{position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--ink);transform:scaleX(0);transform-origin:left;pointer-events:none}
+@keyframes rise{from{transform:translateY(110%)}}
+@keyframes draw{from{transform:scaleX(0)}}
+@keyframes dash{from{stroke-dashoffset:1}}
+@keyframes settle{from{opacity:0;transform:translateY(8px)}}
+@keyframes flu{from{background-color:rgba(31,191,117,.24)}}
+@keyframes fld{from{background-color:rgba(240,71,90,.24)}}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
+.hero .w>span{animation:rise 640ms cubic-bezier(.16,.8,.2,1) both;animation-delay:calc(var(--i,0)*40ms)}
+.hero .rule{animation:draw 800ms 200ms var(--ease) both}
+html.intro-lock .hero *{animation-play-state:paused}
+.fl-up{animation:flu 600ms var(--ease-enter)} .fl-dn{animation:fld 600ms var(--ease-enter)}
+.skel{display:grid;gap:16px;padding:8px 0 20px}
+.skel i{display:block;height:14px;border-radius:2px;background:linear-gradient(90deg,var(--soft) 0,#262b33 45%,var(--soft) 90%) 0 0/200% 100%;animation:shimmer 1.3s linear infinite}
+.ph{opacity:.45} .ph .big{color:var(--faint)} /* the empty estimate: the shape of the answer, greyed out */
+#vout.pop{animation:settle var(--ui) var(--ease-enter) both}
+.tick{display:block;width:36px;height:36px;margin-bottom:16px;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.tick circle{stroke:var(--line-2)} .tick path{stroke:var(--ink);stroke-dasharray:1;animation:dash var(--enter) var(--ease) both}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .tk-vp{overflow-x:auto;-webkit-mask-image:none;mask-image:none}
+  .ticker .tape-copy{display:none} /* one set of prices, scrollable */
+}
+
+/* Opening animation: the CX candles assemble out of drifting points, like an AI forming beyond a firewall. */
+#intro{display:none;position:fixed;inset:0;z-index:100;transition:opacity .5s ease;cursor:pointer;touch-action:none}
+#intro .ibg{position:absolute;inset:0;background:var(--page);transition:opacity .9s ease}
+#intro.reveal .ibg{opacity:0}
+#intro.on{display:block} #intro.gone{opacity:0;pointer-events:none}
+#intro canvas{position:absolute;inset:0;display:block}
+.intro-wm{position:absolute;left:0;right:0;text-align:center;opacity:0;pointer-events:none}
+.intro-wm b{display:block;font:700 36px/1 var(--serif);color:var(--ink);letter-spacing:.04em;white-space:pre}
+.intro-wm small{display:block;margin-top:14px;font:400 11px/1 var(--serif);letter-spacing:.42em;color:var(--ink-2);white-space:pre}
+.intro-status{position:absolute;left:0;right:0;bottom:36px;width:max-content;max-width:calc(100% - 32px);margin:auto;padding:5px 12px;background:var(--page);text-align:center;font:500 10px/1 var(--mono);letter-spacing:.32em;color:var(--faint);text-transform:uppercase;pointer-events:none}
+html.intro-lock{overflow:hidden}
+</style>
+<style>
+.cxd-bar{position:relative;z-index:5;box-sizing:border-box;height:24px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;background:#000;color:#878d97;border-bottom:1px solid #1b1f26;font:500 11px/1 "Inter",-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.04em;white-space:nowrap;overflow:hidden}
+.cxd-bar button{all:unset;cursor:pointer;color:#b4b9c2;text-decoration:underline;text-decoration-color:#2a2f37;text-underline-offset:3px}
+.cxd-bar button:hover{color:#eceef1} .cxd-bar button:focus-visible{outline:1px solid #eceef1;outline-offset:2px}
+@media print{.cxd-bar{display:none}}
+</style>
+<script src="demo-api.js"></script>
+</head>
+<body>
+<div class="cxd-bar" role="note"><span>Demo · runs in your browser · play money</span><span aria-hidden="true">·</span><button type="button" data-demo-reset>Reset demo</button></div>
+<a class="skip" href="#main">Skip to content</a>
+<div id="intro" aria-hidden="true">
+  <div class="ibg"></div>
+  <canvas></canvas>
+  <div class="intro-wm"><b data-text="CX">CX</b><small data-text="CREATOR EXCHANGE">CREATOR EXCHANGE</small></div>
+  <div class="intro-status"></div>
+</div>
+<script>
+// Opening animation, "The Float": a dandelion seed head drawn as a halftone dot grid (ordered dithering). Pollen-like
+// dots gather into a stem and a head that blooms from the centre out; the name decodes; machine-vision boxes read it
+// as a creator, then as a creator of 148 shares; from "Market open" a breeze takes a few seeds at a time at random,
+// each tagged as a share and then a holder as it drifts up into the page, and they grow back. The cursor (or a
+// finger) blows away the ones it brushes. It stays until the visitor moves on: a scroll, a click or tap, or a key. Once per session; ?intro forces it; never shown when the system asks
+// for reduced motion.
+(() => {
+  const el = document.getElementById('intro');
+  let seen = false; try { seen = sessionStorage.getItem('cx.intro') === '1'; } catch {}
+  if ((seen && !/[?&]intro\b/.test(location.search)) || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); return; }
+  try { sessionStorage.setItem('cx.intro', '1'); } catch {}
+  el.classList.add('on'); document.documentElement.classList.add('intro-lock');
+  const cv = el.querySelector('canvas'), g = cv.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1), W = innerWidth, H = innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px'; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const rnd = Math.random, ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, ramp = (a, b, x) => Math.min(1, Math.max(0, (x - a) / (b - a)));
+  const FORM0 = .3, FORM1 = 2.1, NAME = 2.0, DET0 = 2.0, GUST = 3.3;
+
+  // the flower: 120 seeds spread evenly over a sphere (Fibonacci) and seen from the front; z = how much one faces us
+  const wide = W >= 600, R = wide ? Math.min(H * .33, W * .27, 300) : W * .34, hx = W * (wide ? .6 : .56), hy = H * (wide ? .42 : .33);
+  const st = [hx - R * 1.15, H + 24], sc = [hx - R * .25, hy + R * 1.45];   // the stem: from below the frame, curving up into the head
+  const BG = { x: hx - R * 1.7, y: hy - R * .75, r: R * .72 };                  // a second flower, far behind and out of focus
+  const LIGHT = [.72, .69];                                                     // light from the upper right: one side of the head glows
+  const SEEDS = 148, seeds = [];
+  for (let i = 0; i < SEEDS; i++) { const z = 1 - 2 * (i + .5) / SEEDS, r = Math.sqrt(1 - z * z), a = i * 2.39996; seeds.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, z, len: .88 + rnd() * .12, re: -9 }); }
+  // a seed that leaves becomes a flyer; its spot on the head stays bare (re = when it starts growing back, over GROW s)
+  const GROW = 2.6, ripe = (s, t) => t >= s.re + GROW; let flyers = [], serial = 0, puff = 0;
+  function launch(s, t, vx, vy) {
+    const [x, y, ang] = seedAt(s, pose(t)); s.re = t + 2.5 + rnd() * 4.5;
+    flyers.push({ x, y, ang, vx, vy, t0: t, id: ++serial, spin: (rnd() - .5) * 3, wob: rnd() * 6.283, tag: flyers.filter(f => f.tag && t - f.t0 < 2.4).length < 3,
+      share: 'share_' + String(rnd() * 9999 | 0).padStart(4, '0'), holder: `→ holder 0.9${rnd() * 10 | 0}` });
+  }
+  function step(t) {
+    if (t > GUST && t > puff) { puff = t + .15 + rnd() * .7;               // once the market opens, now and then a breeze takes one or a few
+      for (let n = 1 + (rnd() * rnd() * 4 | 0); n--;) { const s = seeds[rnd() * SEEDS | 0]; if (ripe(s, t)) launch(s, t, -(40 + rnd() * 90), -(30 + rnd() * 70)); } }
+    flyers = flyers.filter(f => { const [x, y] = flyerAt(f, t); return x > -80 && x < W + 80 && y > -80 && y < H + 80; });
+  }
+  const flyerAt = (f, t) => { const u = t - f.t0; return [f.x + f.vx * u + Math.sin(u * 3 + f.wob) * 10 - 40 * u * u, f.y + f.vy * u - 30 * u * u, f.ang + f.spin * u]; }; // the wind lifts up and to the left
+  const drifters = Array.from({ length: wide ? 7 : 4 }, () => ({ x: rnd() * W, y: rnd() * H, vx: -(8 + rnd() * 18), vy: -(6 + rnd() * 12), a: rnd() * 6.283, z: .4 + rnd() * .6 })); // stray seeds in the air
+  const pose = t => ({ cx: hx + Math.sin(t * 1.15) * R * .07, cy: hy, k: ease(ramp(.6, 2, t)), rot: Math.sin(t * 1.15) * .05, stem: ramp(.3, .95, t) }); // sways, never spins
+  function seedAt(s, P, gr = 1) { // where a seed's tuft sits on the head; a regrowing one (gr < 1) reaches out from the centre
+    const c = Math.cos(P.rot), n = Math.sin(P.rot), dx = s.x * c - s.y * n, dy = s.x * n + s.y * c, l = R * P.k * s.len * (.15 + .85 * gr);
+    return [P.cx + dx * l, P.cy - dy * l, Math.atan2(-dy, dx), dx, dy];
+  }
+
+  // the dot grid. The flower is painted at one pixel per dot on a hidden canvas, and its brightness is dithered.
+  const CELL = Math.round((wide ? 3.4 : 3.2) * dpr) / dpr, snap = v => Math.round(v * dpr) / dpr;
+  const bx0 = snap(wide ? W * .05 : 0), by0 = 0, bx1 = W, by1 = H;
+  const cols = Math.ceil((bx1 - bx0) / CELL), rows = Math.ceil((by1 - by0) / CELL), N = cols * rows;
+  const oc = document.createElement('canvas'); oc.width = cols; oc.height = rows;
+  const o = oc.getContext('2d', { willReadFrequently: true }), field = new Float32Array(N);
+  function paint(t) {
+    const P = pose(t), L = R * P.k;
+    o.setTransform(1, 0, 0, 1, 0, 0); o.fillStyle = '#000'; o.fillRect(0, 0, cols, rows);
+    o.setTransform(1 / CELL, 0, 0, 1 / CELL, -bx0 / CELL, -by0 / CELL); o.lineCap = 'round';  // draw in screen pixels
+    if (P.k > 0) { const gr = o.createRadialGradient(P.cx + L * .25, P.cy - L * .25, 0, P.cx, P.cy, L * 1.6); gr.addColorStop(0, 'rgba(255,255,255,.2)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); o.fillStyle = gr; o.fillRect(P.cx - L * 2, P.cy - L * 2, L * 4, L * 4); } // backlight
+    { const k = ease(ramp(.4, 2.2, t)); if (k > 0) { o.lineWidth = CELL * 3; for (let i = 0; i < 56; i++) { const a = i * 2.39996, r2 = BG.r * k * (.85 + .15 * Math.sin(i * 3)); // far flower, soft and dim
+      o.strokeStyle = `rgba(255,255,255,${(.09 + .05 * Math.sin(i)).toFixed(3)})`; o.beginPath(); o.moveTo(BG.x, BG.y); o.lineTo(BG.x + Math.cos(a) * r2, BG.y + Math.sin(a) * r2); o.stroke(); }
+      const gb = o.createRadialGradient(BG.x, BG.y, 0, BG.x, BG.y, BG.r * k); gb.addColorStop(0, 'rgba(255,255,255,.16)'); gb.addColorStop(1, 'rgba(255,255,255,0)'); o.fillStyle = gb; o.fillRect(BG.x - BG.r, BG.y - BG.r, BG.r * 2, BG.r * 2); } }
+    o.lineWidth = CELL * .5;
+    for (const d of drifters) { const x = ((d.x + d.vx * t) % W + W) % W, y = ((d.y + d.vy * t + Math.sin(t * .8 + d.a) * 8) % H + H) % H, f = R * .09 * d.z, ang = -2.2 + Math.sin(t + d.a) * .3; // stray seeds
+      o.strokeStyle = `rgba(255,255,255,${(.25 * d.z).toFixed(3)})`; o.beginPath(); o.moveTo(x - Math.cos(ang) * f * 2, y - Math.sin(ang) * f * 2); o.lineTo(x, y);
+      for (let q = -3; q <= 3; q++) { o.moveTo(x, y); o.lineTo(x + Math.cos(ang + q * .3) * f, y + Math.sin(ang + q * .3) * f); } o.stroke(); }
+    if (P.stem > 0) { const ex = P.cx, ey = P.cy + R * .12 * Math.max(.3, P.k), inHead = P.cy + L * .55; o.lineWidth = CELL * 1.25;
+      let px = st[0], py = st[1];
+      for (let j = 1; j <= 32 * P.stem; j++) { const u = j / 32, x = (1 - u) * (1 - u) * st[0] + 2 * u * (1 - u) * sc[0] + u * u * ex, y = (1 - u) * (1 - u) * st[1] + 2 * u * (1 - u) * sc[1] + u * u * ey;
+        o.strokeStyle = `rgba(255,255,255,${y < inHead ? .3 : .72})`; o.lineWidth = CELL * (y < inHead ? .7 : 1.25); o.beginPath(); o.moveTo(px, py); o.lineTo(x, y); o.stroke(); px = x; py = y; } } // the stem grows up out of the ground and thins inside the head
+    const seed = (sx, sy, x, y, ang, f, face) => {
+      o.strokeStyle = `rgba(255,255,255,${(.36 + .34 * face).toFixed(3)})`; o.lineWidth = CELL * .55; o.beginPath(); o.moveTo(sx, sy); o.lineTo(x, y); o.stroke(); // the stalk
+      o.strokeStyle = `rgba(255,255,255,${(.36 + .42 * face).toFixed(3)})`; o.lineWidth = CELL * .45; o.beginPath();
+      for (let q = -3; q <= 3; q++) { o.moveTo(x, y); o.lineTo(x + Math.cos(ang + q * .26) * f, y + Math.sin(ang + q * .26) * f); } o.stroke(); // the feathery tuft
+    };
+    if (P.k > 0) for (const s of seeds) {
+      if (t < s.re) continue;                                               // flown, not grown back yet
+      const gr = ease(ramp(s.re, s.re + GROW, t)), [x, y, ang, dx, dy] = seedAt(s, P, gr), lit = Math.max(0, dx * LIGHT[0] + dy * LIGHT[1]);
+      seed(P.cx + dx * L * .12, P.cy - dy * L * .12, x, y, ang, L * .16 * Math.max(.25, gr), .08 + .22 * (s.z + 1) / 2 + .95 * lit * lit); // the side facing the light glows
+    }
+    for (const f of flyers) { const [x, y, ang] = flyerAt(f, t); seed(x - Math.cos(ang) * R * .4, y - Math.sin(ang) * R * .4, x, y, ang, R * .19, 1); } // a seed in the air shows its whole parachute
+    if (P.k > 0) { o.fillStyle = 'rgba(255,255,255,.9)'; o.beginPath(); o.arc(P.cx, P.cy, R * .1 * P.k, 0, 6.283); o.fill(); } // where the seeds meet
+    const d = o.getImageData(0, 0, cols, rows).data;
+    for (let i = 0; i < N; i++) { const v = Math.min(1, Math.max(0, (d[i * 4] / 255 - .03) / .8)); field[i] = v * v * (3 - 2 * v); }
+  }
+  let BAYER = [[0]]; for (let k = 0; k < 3; k++) { const n = BAYER.length; BAYER = Array.from({ length: 2 * n }, (_, r) => Array.from({ length: 2 * n }, (_, c) => BAYER[r % n][c % n] * 4 + [[0, 2], [3, 1]][r / n | 0][c / n | 0])); } // 8x8, 64 tones
+  const gx = new Float32Array(N), gy2 = new Float32Array(N), sx = new Float32Array(N), sy = new Float32Array(N), dl = new Float32Array(N), th = new Float32Array(N), ph = new Float32Array(N);
+  for (let r = 0, i = 0; r < rows; r++) for (let c = 0; c < cols; c++, i++) {
+    gx[i] = bx0 + c * CELL; gy2[i] = by0 + r * CELL; th[i] = (BAYER[r & 7][c & 7] + .5) / 64 * .92 + .04;
+    sx[i] = rnd() * W; sy[i] = rnd() * H; dl[i] = rnd() * .8; ph[i] = rnd() * 6.283;
+  }
+  const LEVELS = 9, STY = Array.from({ length: LEVELS }, (_, k) => `rgba(238,240,243,${((k + 1) / LEVELS).toFixed(3)})`), bucket = Array.from({ length: LEVELS }, () => []);
+
+  // An AI reading the flower: one box on the head (taraxacum, then creator, then creator · 148 shares), and small ones that follow single seeds from share to holder.
+  const boxes = new Map(); let lastDet = -1;
+  const put = (k, x, y, w, h, label, dot, t) => { const b = boxes.get(k);
+    if (b) { if (b.label !== label) b.born = t; Object.assign(b, { tx: x, ty: y, tw: w, th: h, label, seen: t }); } else boxes.set(k, { x, y, w, h, tx: x, ty: y, tw: w, th: h, label, dot, born: t, seen: t }); };
+  function track(t) {
+    const P = pose(t), hr = R * P.k * 1.03;
+    put('head', P.cx - hr, P.cy - hr, hr * 2, hr * 2, t < 2.6 ? 'taraxacum 0.97' : t < GUST - .2 ? 'creator 0.98' : 'creator · 148 shares', false, t);
+    if (t < GUST) return;
+    for (const f of flyers) { if (!f.tag || t - f.t0 > 2.4) continue; const [x, y] = flyerAt(f, t); if (x < 12 || x > W - 24 || y < 12 || y > H - 12) continue;
+      put('f' + f.id, x - 9, y - 9, 18, 18, t - f.t0 < .55 ? f.share : f.holder, true, t); }
+  }
+  function drawBoxes(t) {
+    g.lineWidth = 1; g.font = '9px "JetBrains Mono", ui-monospace, monospace'; g.textBaseline = 'bottom';
+    for (const [k, b] of boxes) {
+      if (t - b.seen > .15) { boxes.delete(k); continue; }
+      for (const [p, q] of [['x', 'tx'], ['y', 'ty'], ['w', 'tw'], ['h', 'th']]) b[p] += (b[q] - b[p]) * .4;
+      const age = t - b.born, a = (k === 'head' ? .65 : .8) * (age < .2 && (age * 40 | 0) % 2 ? .15 : 1) * Math.min(1, (t - DET0) / .3);
+      g.strokeStyle = g.fillStyle = `rgba(236,240,243,${a})`;
+      const X = Math.round(b.x) + .5, Y = Math.round(b.y) + .5;
+      g.strokeRect(X, Y, Math.round(b.w), Math.round(b.h)); g.fillText(age < .25 ? scramble(b.label, (age / .25 * b.label.length) | 0) : b.label, X + 1, Y - 2);
+      if (b.dot) g.fillRect(Math.round(b.x + b.w / 2) - 1, Math.round(b.y + b.h / 2) - 1, 2, 2);
+    }
+  }
+
+  const wm = el.querySelector('.intro-wm'), status = el.querySelector('.intro-status'), parts = [...wm.querySelectorAll('[data-text]')];
+  if (wide) Object.assign(wm.style, { top: H * .66 + 'px', left: W * .09 + 'px', right: 'auto', textAlign: 'left' }); else wm.style.top = H * .72 + 'px';
+  const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&/<>[]', scramble = (txt, k) => [...txt].map((c, i) => i < k || c === ' ' ? c : GLYPHS[Math.floor(rnd() * GLYPHS.length)]).join('');
+  const T0 = performance.now(); let over = false;
+  function frame(now) {
+    if (over) return;
+    const t = (now - T0) / 1000, span = FORM1 - FORM0 - .8;
+    g.clearRect(0, 0, W, H);
+    step(t); paint(t);
+    for (const b of bucket) b.length = 0;
+    for (let i = 0; i < N; i++) {
+      const L = field[i], lit = L > th[i], e = ease(ramp(0, 1, (t - FORM0 - dl[i]) / span));
+      let a = lit ? .4 + .6 * L : 0;
+      if (e < 1) a = (i % 5 ? 0 : .45) * (1 - e) + a * e;
+      else if (!a && rnd() < .0025) a = .22;                                // film grain                  // a sparse field of drifting pollen until the dots land
+      if (a < .02) continue;
+      let x = gx[i], y = gy2[i];
+      if (e < 1) { const k = Math.sin(e * Math.PI) * .2, dx = gx[i] - sx[i], dy = gy2[i] - sy[i];
+        x = sx[i] + dx * e - dy * k + (1 - e) * Math.sin(t * 1.2 + ph[i]) * 6; y = sy[i] + dy * e + dx * k + (1 - e) * Math.cos(t + ph[i]) * 6; }
+      bucket[Math.min(LEVELS - 1, Math.floor(a * LEVELS))].push(x, y);
+    }
+    for (let k = 0; k < LEVELS; k++) { const b = bucket[k]; if (!b.length) continue; const z = CELL * (.3 + .38 * (k + 1) / LEVELS); g.fillStyle = STY[k]; for (let j = 0; j < b.length; j += 2) g.fillRect(b[j], b[j + 1], z, z); } // brighter = bigger dots
+    if (t > DET0) { if (t - lastDet > .05) { lastDet = t; track(t); } drawBoxes(t); }
+    if (t > 1.6 && rnd() < .05) { const by = hy - R + rnd() * R * 2, bh = 2 + rnd() * 8; g.drawImage(cv, 0, by * dpr, W * dpr, bh * dpr, (rnd() - .5) * 22, by, W, bh); } // a glitch band now and then
+    if (t > NAME) { wm.style.opacity = '1'; const k = Math.min(1, (t - NAME) / .9); parts.forEach(n => { n.textContent = scramble(n.dataset.text, Math.floor(k * n.dataset.text.length)); }); }
+    status.textContent = t < GUST ? `Opening the market · ${String(Math.min(99, Math.floor(t / GUST * 100))).padStart(2, '0')}%` : matchMedia('(pointer: coarse)').matches ? 'Drag the seeds · tap to enter' : 'Market open · brush the seeds · scroll or click to enter';
+    requestAnimationFrame(frame);
+  }
+  function finish() {
+    if (over) return; over = true;
+    el.classList.add('reveal', 'gone'); document.documentElement.classList.remove('intro-lock');
+    setTimeout(() => el.remove(), 750);
+    for (const ev of ['keydown', 'wheel']) removeEventListener(ev, finish, true);
+  }
+  for (const ev of ['keydown', 'wheel']) addEventListener(ev, finish, { capture: true, passive: true });
+  el.addEventListener('click', finish);                                     // a click or a tap (a drag never clicks, so brushing doesn't end it)
+  // Blowing: seeds near the pointer leave in the direction it moves.
+  function blow(x, y, vx, vy, r) {
+    const t = (performance.now() - T0) / 1000, P = pose(t); if (P.k < .9) return;
+    for (const s of seeds) { if (!ripe(s, t)) continue; const [sx, sy] = seedAt(s, P); if (Math.hypot(sx - x, sy - y) > r) continue;
+      launch(s, t, vx + (sx - x) * 2 + (rnd() - .5) * 60, vy + (sy - y) * 2 + (rnd() - .5) * 60); }
+  }
+  let last = null;
+  el.addEventListener('pointermove', e => { const now = performance.now();
+    if (last) { const dt = Math.max(.008, (now - last.now) / 1000), vx = (e.clientX - last.x) / dt, vy = (e.clientY - last.y) / dt, v = Math.hypot(vx, vy);
+      if (v > 250) { const k = Math.min(1, 900 / v) * .35; blow(e.clientX, e.clientY, vx * k, vy * k, R * .18); } }
+    last = { x: e.clientX, y: e.clientY, now }; });
+  requestAnimationFrame(frame);
+})();
+</script>
+<div class="strip"><div class="wrap">
+  <span><b>Preview</b> · play money only. Nothing on CX is an offer of securities.</span>
+  <span class="r"><a href="markets.html">CX Markets</a></span>
+</div></div>
+<header><div class="wrap">
+  <a class="brand" href="./"><span class="seal"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.95 11.34a0.33 0.33 0 1 0 0.66 0a0.33 0.33 0 1 0 -0.66 0M11.81 13.68a0.34 0.34 0 1 0 0.68 0a0.34 0.34 0 1 0 -0.68 0M12.97 10.27a0.35 0.35 0 1 0 0.70 0a0.35 0.35 0 1 0 -0.70 0M9.10 12.45a0.36 0.36 0 1 0 0.72 0a0.36 0.36 0 1 0 -0.72 0M14.09 13.57a0.37 0.37 0 1 0 0.75 0a0.37 0.37 0 1 0 -0.75 0M10.78 8.89a0.38 0.38 0 1 0 0.77 0a0.38 0.38 0 1 0 -0.77 0M9.99 15.11a0.39 0.39 0 1 0 0.79 0a0.39 0.39 0 1 0 -0.79 0M15.13 10.71a0.40 0.40 0 1 0 0.81 0a0.40 0.40 0 1 0 -0.81 0M7.88 10.47a0.41 0.41 0 1 0 0.83 0a0.41 0.41 0 1 0 -0.83 0M13.37 15.84a0.43 0.43 0 1 0 0.85 0a0.43 0.43 0 1 0 -0.85 0M12.90 7.75a0.44 0.44 0 1 0 0.87 0a0.44 0.44 0 1 0 -0.87 0M7.52 14.34a0.45 0.45 0 1 0 0.89 0a0.45 0.45 0 1 0 -0.89 0M16.29 13.04a0.46 0.46 0 1 0 0.91 0a0.46 0.46 0 1 0 -0.91 0M8.63 7.87a0.47 0.47 0 1 0 0.94 0a0.47 0.47 0 1 0 -0.94 0M10.85 17.19a0.48 0.48 0 1 0 0.96 0a0.48 0.48 0 1 0 -0.96 0M15.65 8.51a0.49 0.49 0 1 0 0.98 0a0.49 0.49 0 1 0 -0.98 0M5.92 11.77a0.50 0.50 0 1 0 1.00 0a0.50 0.50 0 1 0 -1.00 0M15.57 16.06a0.51 0.51 0 1 0 1.02 0a0.51 0.51 0 1 0 -1.02 0M11.21 6.09a0.52 0.52 0 1 0 1.04 0a0.52 0.52 0 1 0 -1.04 0M7.58 16.66a0.53 0.53 0 1 0 1.06 0a0.53 0.53 0 1 0 -1.06 0M17.63 11.17a0.54 0.54 0 1 0 1.08 0a0.54 0.54 0 1 0 -1.08 0M6.21 8.36a0.55 0.55 0 1 0 1.10 0a0.55 0.55 0 1 0 -1.10 0M12.87 18.36a0.56 0.56 0 1 0 1.13 0a0.56 0.56 0 1 0 -1.13 0M14.74 6.22a0.57 0.57 0 1 0 1.15 0a0.57 0.57 0 1 0 -1.15 0M4.93 14.07a0.58 0.58 0 1 0 1.17 0a0.58 0.58 0 1 0 -1.17 0M17.71 14.91a0.59 0.59 0 1 0 1.19 0a0.59 0.59 0 1 0 -1.19 0M8.66 5.47a0.60 0.60 0 1 0 1.21 0a0.60 0.60 0 1 0 -1.21 0M8.94 18.79a0.62 0.62 0 1 0 1.23 0a0.62 0.62 0 1 0 -1.23 0M17.87 8.58a0.63 0.63 0 1 0 1.25 0a0.63 0.63 0 1 0 -1.25 0M4.14 10.10a0.64 0.64 0 1 0 1.27 0a0.64 0.64 0 1 0 -1.27 0M15.46 18.39a0.65 0.65 0 1 0 1.29 0a0.65 0.65 0 1 0 -1.29 0M12.65 4.39a0.66 0.66 0 1 0 1.31 0a0.66 0.66 0 1 0 -1.31 0M5.13 16.80a0.67 0.67 0 1 0 1.34 0a0.67 0.67 0 1 0 -1.34 0M19.25 12.66a0.68 0.68 0 1 0 1.36 0a0.68 0.68 0 1 0 -1.36 0M5.83 6.07a0.69 0.69 0 1 0 1.38 0a0.69 0.69 0 1 0 -1.38 0M11.34 20.19a0.70 0.70 0 1 0 1.40 0a0.70 0.70 0 1 0 -1.40 0M16.87 5.85a0.71 0.71 0 1 0 1.42 0a0.71 0.71 0 1 0 -1.42 0M2.89 12.78a0.72 0.72 0 1 0 1.44 0a0.72 0.72 0 1 0 -1.44 0M18.07 17.16a0.73 0.73 0 1 0 1.46 0a0.73 0.73 0 1 0 -1.46 0M9.71 3.50a0.74 0.74 0 1 0 1.48 0a0.74 0.74 0 1 0 -1.48 0M6.58 19.41a0.75 0.75 0 1 0 1.50 0a0.75 0.75 0 1 0 -1.50 0M19.78 9.66a0.76 0.76 0 1 0 1.53 0a0.76 0.76 0 1 0 -1.53 0M3.25 7.91a0.77 0.77 0 1 0 1.55 0a0.77 0.77 0 1 0 -1.55 0M14.37 20.51a0.78 0.78 0 1 0 1.57 0a0.78 0.78 0 1 0 -1.57 0M14.67 3.50a0.79 0.79 0 1 0 1.59 0a0.79 0.79 0 1 0 -1.59 0M2.81 15.97a0.81 0.81 0 1 0 1.61 0a0.81 0.81 0 1 0 -1.61 0M20.15 14.76a0.82 0.82 0 1 0 1.63 0a0.82 0.82 0 1 0 -1.63 0M6.38 3.82a0.83 0.83 0 1 0 1.65 0a0.83 0.83 0 1 0 -1.65 0M9.15 21.36a0.84 0.84 0 1 0 1.67 0a0.84 0.84 0 1 0 -1.67 0M19.04 6.40a0.85 0.85 0 1 0 1.69 0a0.85 0.85 0 1 0 -1.69 0M1.44 10.79a0.86 0.86 0 1 0 1.72 0a0.86 0.86 0 1 0 -1.72 0M17.53 19.52a0.87 0.87 0 1 0 1.74 0a0.87 0.87 0 1 0 -1.74 0M11.49 2.04a0.88 0.88 0 1 0 1.76 0a0.88 0.88 0 1 0 -1.76 0M4.05 19.16a0.89 0.89 0 1 0 1.78 0a0.89 0.89 0 1 0 -1.78 0M21.24 11.48a0.90 0.90 0 1 0 1.80 0a0.90 0.90 0 1 0 -1.80 0"/></svg></span><span><span class="wm">CX</span><span class="tagline">CREATOR EXCHANGE</span></span></a>
+  <nav aria-label="Sections" id="nav"><a href="#market">Market</a><a href="#how">How it works</a><a href="#faq">FAQ</a><a class="m-only" href="markets.html">CX Markets</a><a class="m-only" href="deck.html">Investor deck</a></nav>
+  <a class="btn" href="#join"><span class="long">Join the waitlist</span><span class="short">Waitlist</span></a>
+  <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="nav"><i aria-hidden="true"></i><span class="mt">Menu</span></button>
+</div><i class="prog" id="prog" aria-hidden="true"></i></header>
+
+<main id="main" tabindex="-1">
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">The Creator Exchange · Play-money preview</div>
+    <h1><span class="w"><span style="--i:0">The</span></span> <span class="w"><span style="--i:1">stock</span></span> <span class="w"><span style="--i:2">market</span></span> <span class="w"><span style="--i:3">for</span></span> <em><span class="w"><span style="--i:4">creators.</span></span></em></h1>
+    <div class="rule"></div>
+    <div class="row">
+      <p class="lede">Every creator is a company: their platforms, sponsors and merch add up to one business. Fans buy shares at the IPO, trade them on CX Markets and earn part of the profit every quarter.</p>
+      <div class="ctas"><a class="btn" href="markets.html">Try CX Markets</a><a class="more" href="#watch" id="watch-btn"><span aria-hidden="true">▶</span> Watch the film</a></div>
+    </div>
+    <p class="fine">18+ · No real money · Not an offer of securities</p>
+  </div>
+  <div class="ticker" hidden><div class="tk-vp"><div class="ticker-in" id="ticker"></div></div><button class="lnk tk-btn" type="button" id="tk-pause" aria-pressed="false">Pause updates</button></div>
+</section>
+
+<section class="film" id="watch" aria-label="CX in 27 seconds"><div class="wrap">
+  <video id="film" src="film.mp4" poster="film.jpg" muted loop playsinline preload="metadata" aria-label="A 27-second film showing how CX works: listing a channel, the IPO, the quick risk check, trading and the dividend report"></video>
+  <p class="film-cap"><span>CX in 27 seconds</span><button class="lnk" type="button" id="film-btn" aria-pressed="false">Pause</button></p>
+</div></section>
+
+<section class="plate" id="market"><div class="wrap">
+  <div class="pl"><span class="no">01 <i>/ 04</i></span><h2>The market</h2><p>Every listing trading on CX Markets right now. Example creators with simulated prices, in play money.</p></div>
+  <div class="pc">
+    <div class="idx" id="idx"><span class="label">CXC index</span><b id="idx-v">—</b><span class="ch n" id="idx-ch"></span></div>
+    <table class="mk"><caption hidden>Listings on CX Markets</caption><colgroup><col class="c-sym"><col class="c-spark"><col class="c-px"><col class="c-ch"></colgroup><tbody id="tape"><tr><td class="muted">Loading the market…</td></tr></tbody></table>
+    <div class="mft"><span id="upd">Loading…</span><button class="lnk" type="button" id="pause" aria-pressed="false">Pause updates</button><span class="chip">Simulated prices</span><a class="r" href="markets.html">Open CX Markets →</a></div>
+    <details class="about"><summary>About the CXC index</summary><p>The CXC index adds up the market value (last trade × shares, the creator's own included) of every listing that's trading and compares it with what the same listings were worth at their IPO prices. It is based at 1,000, so 1,100 means trading listings are worth 10% more together than at their IPOs. Bigger listings move it more. Listings still in their IPO aren't counted, and when a new listing opens it joins at its IPO value. Change shown is since each listing's IPO.</p></details>
+  </div>
+</div></section>
+
+<section class="plate" id="how"><div class="wrap">
+  <div class="pl"><span class="no">02 <i>/ 04</i></span><h2>How a listing works</h2><p>Every step mirrors a company going public, made simple enough for a creator to do in a week.</p></div>
+  <div class="pc">
+    <ol class="steps">
+      <li><span class="k">I</span><h3>File</h3><p>The creator files 12+ months of revenue and costs from every source and picks how much of the company to sell, say 25%. CX confirms who they are and checks the numbers against uploaded statements.</p></li>
+      <li><span class="k">II</span><h3>Take bids</h3><p>CX sets a price range from the model value. For a few days anyone can bid for shares inside it. Bids are private.</p></li>
+      <li><span class="k">III</span><h3>Price it</h3><p>The IPO price is the highest price that sells every share, and everyone pays the same price. If less than half the shares get bids, the IPO is withdrawn and no one pays.</p></li>
+      <li><span class="k">IV</span><h3>Trade &amp; get paid</h3><p>Shares trade on an order book, like any stock. Each quarter the creator files earnings, and the share of profit their charter promises (50% to 100%) is paid out as a dividend.</p></li>
+    </ol>
+    <details class="disc ex" id="example"><summary>Worked example: one made-up creator, from IPO to the first dividend</summary><div class="calc" id="calc"></div><p class="callout" id="payout-note"></p></details>
+  </div>
+</div></section>
+
+<section class="plate" id="join"><div class="wrap">
+  <div class="pl"><span class="no">03 <i>/ 04</i></span><h2>Join the waitlist</h2><p>CX runs on play money for now. Join to be one of the first creators to list, or one of the first investors to trade, when real offerings open.</p></div>
+  <div class="pc">
+    <form class="f" id="wform" novalidate>
+      <fieldset class="roles"><legend>I'm a…</legend>
+        <label><input type="radio" name="role" value="creator" checked> Creator</label>
+        <label><input type="radio" name="role" value="investor"> Fan or investor</label>
+        <label><input type="radio" name="role" value="partner"> VC or partner</label>
+      </fieldset>
+      <div class="row2">
+        <div class="fld"><label for="w-name">Name</label><input id="w-name" maxlength="60" autocomplete="name"></div>
+        <div class="fld"><label for="w-email">Email</label><input id="w-email" type="email" maxlength="120" autocomplete="email" required aria-describedby="w-email-err"><p class="err ferr" id="w-email-err" hidden></p></div>
+      </div>
+      <div class="fld" id="w-handle-f"><label for="w-handle">Your main channel</label><input id="w-handle" maxlength="120" placeholder="youtube.com/@you"></div>
+      <div class="fld"><label for="w-note">Anything we should know? (optional)</label><textarea id="w-note" rows="3" maxlength="500"></textarea></div>
+      <p class="err" id="w-err" hidden></p>
+      <button class="btn" id="w-go" type="submit">Join the waitlist</button>
+      <p class="hint">In this demo, what you type stays in your browser. Nothing is sent.</p>
+    </form>
+    <div class="ok" id="wdone" hidden><svg class="tick" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17"/><path d="M11 18.5l4.6 4.6L25.5 13" pathLength="1"/></svg><b>Saved in this demo.</b> <span class="muted">It stays in your browser and nothing was sent. Meanwhile, you can <a href="markets.html">try CX Markets</a> with play money.</span></div>
+  </div>
+</div></section>
+
+<section class="plate" id="faq"><div class="wrap">
+  <div class="pl"><span class="no">04 <i>/ 04</i></span><h2>Questions</h2><p>The rest is in the <a href="legal.html">terms, risks and the path to real money</a>.</p></div>
+  <div class="pc qa">
+  <details class="disc" id="faq-real-money"><summary>Is this real money?</summary><p>Not yet. CX is a preview that runs on play money. Selling shares in a creator's business to the public is a securities offering, so real offerings need an SEC exemption (Regulation Crowdfunding or Regulation A) and a registered funding portal or broker-dealer. CX won't take real money until that's in place.</p></details>
+  <details class="disc" id="faq-what-you-own"><summary>What does a shareholder actually own?</summary><p>A slice of the creator's business, treated like a company: its profit, its cash and anything else it owns. Each quarter the share of profit set in the creator's charter (50% to 100%) is paid out to every share, the creator's own included, and the rest stays in the business. If the creator closes the company, its cash is paid out to every share. Shares never expire. Shareholders get no votes and no say over content.</p></details>
+  <details class="disc" id="faq-creator-gives-up"><summary>What does a creator give up?</summary><p>The part of their company they sell, 10% to 50%. They keep the rest, their channel, their content rights and full creative control. What they pay themselves counts as a cost, so it comes before profit.</p></details>
+  <details class="disc" id="faq-fees"><summary>What are the fees?</summary><p>Two. A 5% listing fee on the money raised in an IPO, and 0.5% of each trade, paid by the order that trades against one already waiting in the book (in the opening auction both sides pay). There are no account, deposit, withdrawal or membership fees, and CX takes nothing from dividends. For comparison, crowdfunding portals usually charge creators 7–10% of a raise, and private-share marketplaces charge up to 5% a side on trades. In the preview all of it is play money.</p></details>
+  <details class="disc" id="faq-valuation"><summary>How is a creator valued?</summary><p>Like a company: a year of profit times a price-to-earnings ratio, plus the cash in the business. The ratio comes from a risk rate (15% a year, plus up to 10% for sponsor-heavy revenue and up to 10% for revenue that hasn't been verified) and stays between 3× and 18×. Sponsor money is less certain than platform payouts, so it counts for a little less.</p></details>
+  <details class="disc" id="faq-gigastar"><summary>How is this different from GigaStar?</summary><p>GigaStar lets fans invest in a share of a YouTube channel's ad revenue. CX treats the whole creator as a company: every platform plus sponsors and merch, and shares that never expire. For the median YouTube creator in CX Research, about 70% of estimated revenue comes from outside YouTube ads. CX also gives every creator a public valuation before they list.</p></details>
+  <details class="disc more-q"><summary>Six more questions</summary>
+  <details class="disc" id="faq-revenue-drops"><summary>What if a creator stops posting or their revenue drops?</summary><p>Profit and dividends drop with it. A loss pays nothing, and it has to be made up before dividends start again. That's the main risk, and it's why prices move. Creators have to file a quarterly report; late filers are flagged, and the exchange can halt trading. IPO money goes into the business, not the creator's pocket.</p></details>
+  <details class="disc" id="faq-who"><summary>Who can join?</summary><p>Anyone can browse CX Markets and CX Research without an account. To trade you open an account, like at any broker: confirm your email, give your legal name and date of birth (you need to be 18 or older), answer a few questions about your finances and pass a short risk check. A creator can only list themselves, or list with the creator's written permission, and proves it with a code in their bio before anything goes live.</p></details>
+  <details class="disc" id="faq-numbers"><summary>Where do the numbers come from?</summary><p>Two places. CX Research estimates revenue from public stats (the YouTube Data API, TikTok public profiles and Twitch public pages) with the assumptions shown on its Method page, so its figures are ranges, not reported earnings. Listings on CX Markets use what the creator files, and each revenue source shows whether the exchange could check it against a payout statement. The example listings are simulated.</p></details>
+  <details class="disc" id="faq-late-filing"><summary>What happens if a creator stops filing?</summary><p>A CX-Q report is due 91 days after the last one. After that the listing is marked overdue, and 30 days later it's flagged as a late filer. The exchange can halt trading. No report means no dividend for that quarter.</p></details>
+  <details class="disc" id="faq-dividends"><summary>How are dividends paid in the preview?</summary><p>When a creator files a CX-Q, the share of the quarter's profit set in their charter (50% to 100%, chosen when they file to list) is split across every share, the creator's included, and lands in each holder's play-money cash straight away. Earlier losses are made up first, and the payout is cut if it would leave the business with less than one quarter's costs in cash. That percentage is a share of profit, not a return on what you paid.</p></details>
+  <details class="disc" id="faq-data"><summary>What data does CX keep?</summary><p>Your email, username and a scrambled (hashed) password, what you give when opening your account (legal name, date of birth, state and your answers about your finances), one sign-in cookie, your settings, and your trades, bids and dividends. No ads, no tracking or analytics scripts, and nothing is sold. You can download or delete your data in Settings on CX Markets. <a href="legal.html#privacy">Read the privacy section</a>.</p></details>
+  </details>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <div class="cols">
+    <div><a class="brand" href="./"><span class="seal"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.95 11.34a0.33 0.33 0 1 0 0.66 0a0.33 0.33 0 1 0 -0.66 0M11.81 13.68a0.34 0.34 0 1 0 0.68 0a0.34 0.34 0 1 0 -0.68 0M12.97 10.27a0.35 0.35 0 1 0 0.70 0a0.35 0.35 0 1 0 -0.70 0M9.10 12.45a0.36 0.36 0 1 0 0.72 0a0.36 0.36 0 1 0 -0.72 0M14.09 13.57a0.37 0.37 0 1 0 0.75 0a0.37 0.37 0 1 0 -0.75 0M10.78 8.89a0.38 0.38 0 1 0 0.77 0a0.38 0.38 0 1 0 -0.77 0M9.99 15.11a0.39 0.39 0 1 0 0.79 0a0.39 0.39 0 1 0 -0.79 0M15.13 10.71a0.40 0.40 0 1 0 0.81 0a0.40 0.40 0 1 0 -0.81 0M7.88 10.47a0.41 0.41 0 1 0 0.83 0a0.41 0.41 0 1 0 -0.83 0M13.37 15.84a0.43 0.43 0 1 0 0.85 0a0.43 0.43 0 1 0 -0.85 0M12.90 7.75a0.44 0.44 0 1 0 0.87 0a0.44 0.44 0 1 0 -0.87 0M7.52 14.34a0.45 0.45 0 1 0 0.89 0a0.45 0.45 0 1 0 -0.89 0M16.29 13.04a0.46 0.46 0 1 0 0.91 0a0.46 0.46 0 1 0 -0.91 0M8.63 7.87a0.47 0.47 0 1 0 0.94 0a0.47 0.47 0 1 0 -0.94 0M10.85 17.19a0.48 0.48 0 1 0 0.96 0a0.48 0.48 0 1 0 -0.96 0M15.65 8.51a0.49 0.49 0 1 0 0.98 0a0.49 0.49 0 1 0 -0.98 0M5.92 11.77a0.50 0.50 0 1 0 1.00 0a0.50 0.50 0 1 0 -1.00 0M15.57 16.06a0.51 0.51 0 1 0 1.02 0a0.51 0.51 0 1 0 -1.02 0M11.21 6.09a0.52 0.52 0 1 0 1.04 0a0.52 0.52 0 1 0 -1.04 0M7.58 16.66a0.53 0.53 0 1 0 1.06 0a0.53 0.53 0 1 0 -1.06 0M17.63 11.17a0.54 0.54 0 1 0 1.08 0a0.54 0.54 0 1 0 -1.08 0M6.21 8.36a0.55 0.55 0 1 0 1.10 0a0.55 0.55 0 1 0 -1.10 0M12.87 18.36a0.56 0.56 0 1 0 1.13 0a0.56 0.56 0 1 0 -1.13 0M14.74 6.22a0.57 0.57 0 1 0 1.15 0a0.57 0.57 0 1 0 -1.15 0M4.93 14.07a0.58 0.58 0 1 0 1.17 0a0.58 0.58 0 1 0 -1.17 0M17.71 14.91a0.59 0.59 0 1 0 1.19 0a0.59 0.59 0 1 0 -1.19 0M8.66 5.47a0.60 0.60 0 1 0 1.21 0a0.60 0.60 0 1 0 -1.21 0M8.94 18.79a0.62 0.62 0 1 0 1.23 0a0.62 0.62 0 1 0 -1.23 0M17.87 8.58a0.63 0.63 0 1 0 1.25 0a0.63 0.63 0 1 0 -1.25 0M4.14 10.10a0.64 0.64 0 1 0 1.27 0a0.64 0.64 0 1 0 -1.27 0M15.46 18.39a0.65 0.65 0 1 0 1.29 0a0.65 0.65 0 1 0 -1.29 0M12.65 4.39a0.66 0.66 0 1 0 1.31 0a0.66 0.66 0 1 0 -1.31 0M5.13 16.80a0.67 0.67 0 1 0 1.34 0a0.67 0.67 0 1 0 -1.34 0M19.25 12.66a0.68 0.68 0 1 0 1.36 0a0.68 0.68 0 1 0 -1.36 0M5.83 6.07a0.69 0.69 0 1 0 1.38 0a0.69 0.69 0 1 0 -1.38 0M11.34 20.19a0.70 0.70 0 1 0 1.40 0a0.70 0.70 0 1 0 -1.40 0M16.87 5.85a0.71 0.71 0 1 0 1.42 0a0.71 0.71 0 1 0 -1.42 0M2.89 12.78a0.72 0.72 0 1 0 1.44 0a0.72 0.72 0 1 0 -1.44 0M18.07 17.16a0.73 0.73 0 1 0 1.46 0a0.73 0.73 0 1 0 -1.46 0M9.71 3.50a0.74 0.74 0 1 0 1.48 0a0.74 0.74 0 1 0 -1.48 0M6.58 19.41a0.75 0.75 0 1 0 1.50 0a0.75 0.75 0 1 0 -1.50 0M19.78 9.66a0.76 0.76 0 1 0 1.53 0a0.76 0.76 0 1 0 -1.53 0M3.25 7.91a0.77 0.77 0 1 0 1.55 0a0.77 0.77 0 1 0 -1.55 0M14.37 20.51a0.78 0.78 0 1 0 1.57 0a0.78 0.78 0 1 0 -1.57 0M14.67 3.50a0.79 0.79 0 1 0 1.59 0a0.79 0.79 0 1 0 -1.59 0M2.81 15.97a0.81 0.81 0 1 0 1.61 0a0.81 0.81 0 1 0 -1.61 0M20.15 14.76a0.82 0.82 0 1 0 1.63 0a0.82 0.82 0 1 0 -1.63 0M6.38 3.82a0.83 0.83 0 1 0 1.65 0a0.83 0.83 0 1 0 -1.65 0M9.15 21.36a0.84 0.84 0 1 0 1.67 0a0.84 0.84 0 1 0 -1.67 0M19.04 6.40a0.85 0.85 0 1 0 1.69 0a0.85 0.85 0 1 0 -1.69 0M1.44 10.79a0.86 0.86 0 1 0 1.72 0a0.86 0.86 0 1 0 -1.72 0M17.53 19.52a0.87 0.87 0 1 0 1.74 0a0.87 0.87 0 1 0 -1.74 0M11.49 2.04a0.88 0.88 0 1 0 1.76 0a0.88 0.88 0 1 0 -1.76 0M4.05 19.16a0.89 0.89 0 1 0 1.78 0a0.89 0.89 0 1 0 -1.78 0M21.24 11.48a0.90 0.90 0 1 0 1.80 0a0.90 0.90 0 1 0 -1.80 0"/></svg></span><span><span class="wm">CX</span><span class="tagline">CREATOR EXCHANGE</span></span></a><p class="asof" id="f-asof"></p></div>
+    <div><h4>Product</h4><a href="markets.html">CX Markets</a><a href="deck.html">Investor deck</a></div>
+    <div><h4>Learn</h4><a href="#market">The market</a><a href="#how">How it works</a><a href="#example">Worked example</a><a href="#faq">FAQ</a></div>
+    <div><h4>Legal</h4><a href="legal.html#terms">Terms of use</a><a href="legal.html#privacy">Privacy</a><a href="legal.html#risks">Risks</a><a href="legal.html#path">The path to real money</a></div>
+  </div>
+  <p>CX is a preview using play money. It is not a registered exchange, broker-dealer or funding portal, and nothing on this site is an offer to sell or a solicitation to buy securities. Valuations in CX Research are estimates from public data, not reported revenue. Example listings and their price histories are simulated.</p>
+</div></footer>
+
+<script type="module">
+import { indexLevel, money, LISTING_FEE, TRADE_FEE, PAYOUT, GROWTH, PE_MIN, PE_MAX, BASE_RISK, SPONSOR_RISK } from './engine.js';
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// $1.2M, $850K, $2M: one decimal at most, no trailing .0, and 999,950 rounds up to $1M rather than $1000K
+const big = x => { const a = Math.abs(x), [d, u] = a >= 999.95e6 ? [1e9, 'B'] : a >= 999.95e3 ? [1e6, 'M'] : a >= 999.5 ? [1e3, 'K'] : [1, ''];
+  return (x < 0 ? '−' : '') + '$' + (a / d).toFixed(u ? 1 : 0).replace(/\.0$/, '') + u; };
+const pct = (x, d = 1) => { const v = Math.abs(x * 100).toFixed(d); return (+v ? (x > 0 ? '+' : '−') : '') + v + '%'; }; // real minus sign; no −0.0%
+const date = t => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const hhmmss = t => new Date(t).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZoneName: 'short' });
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CX': '1' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong. Try again.'), { status: r.status }); // status tells "not found" from "broken"
+  return j;
+}
+
+/* the live board: refreshes every 20 seconds unless paused, and keeps the last good numbers if an update fails */
+let owner = false, lastOk = 0, paused = false, timer = 0;
+const prevPx = new Map(); // last price shown per ticker, so a move can flash
+function spark(pts, up) { // whole history since the IPO, thinned to ~90 points by the server, colored like the change column
+  if (pts.length < 2) return '';
+  const lo = Math.min(...pts), hi = Math.max(...pts), w = 120, ht = 28;
+  const d = pts.map((p, i) => `${(i / (pts.length - 1) * w).toFixed(1)},${(ht - 2 - (p - lo) / ((hi - lo) || 1) * (ht - 4)).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="${w}" height="${ht}" viewBox="0 0 ${w} ${ht}" aria-hidden="true"><polyline points="${d}" fill="none" stroke="var(${up ? '--up' : '--down'})" stroke-width="1.6"/></svg>`;
+}
+function board(st) {
+  owner = !!(st.me && st.me.owner);
+  const live = st.stocks.filter(s => s.status === 'open'), lvl = indexLevel(st.stocks);
+  $('#idx-v').textContent = lvl ? lvl.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '—';
+  $('#idx-ch').className = `ch n ${lvl >= 1000 ? 'up' : 'down'}`; $('#idx-ch').textContent = lvl ? pct(lvl / 1000 - 1) + ' since the IPOs' : '';
+  const roadshow = st.stocks.filter(s => s.status === 'roadshow');
+  $('#tape').innerHTML = live.map(s => { const c = s.last / s.ipoPrice - 1, was = prevPx.get(s.ticker), fl = was == null || was === s.last ? '' : s.last > was ? ' fl-up' : ' fl-dn'; prevPx.set(s.ticker, s.last);
+    return `<tr data-href="markets.html?t=${esc(s.ticker)}"><td><a href="markets.html?t=${esc(s.ticker)}"><span class="sym">${esc(s.ticker)}</span> <span class="muted hide-s">${esc(s.name)}</span></a></td><td>${spark(s.spark, c >= 0)}</td><td class="n${fl}" style="text-align:right">${money(s.last)}</td><td class="n ${c >= 0 ? 'up' : 'down'}" style="text-align:right">${pct(c)}</td></tr>`; }).join('')
+    + roadshow.map(s => `<tr data-href="markets.html?t=${esc(s.ticker)}"><td><a href="markets.html?t=${esc(s.ticker)}"><span class="sym">${esc(s.ticker)}</span> <span class="muted hide-s">${esc(s.name)}</span></a></td><td colspan="3" style="text-align:right"><a href="markets.html?t=${esc(s.ticker)}" style="color:var(--link)">IPO taking bids →</a></td></tr>`).join('')
+    || '<tr><td class="muted">No listings yet.</td></tr>';
+  // the hero tape: one real set of prices, then visual copies (hidden from screen readers and Tab) so it loops seamlessly
+  const items = (tab = '') => live.map(s => { const c = s.last / s.ipoPrice - 1; return `<a href="markets.html?t=${esc(s.ticker)}"${tab}><b>${esc(s.ticker)}</b><span class="n">${money(s.last)}</span><span class="n ${c >= 0 ? 'up' : 'down'}">${pct(c)}</span></a>`; }).join('')
+    + roadshow.map(s => `<a href="markets.html?t=${esc(s.ticker)}"${tab}><b>${esc(s.ticker)}</b><span>IPO taking bids</span></a>`).join('');
+  const n = live.length + roadshow.length, reps = Math.max(1, Math.ceil(10 / Math.max(1, n)));
+  $('.ticker').hidden = !n;
+  $('#ticker').style.setProperty('--dur', Math.max(30, n * reps * 5) + 's');
+  const copy = `<span class="tape-copy" aria-hidden="true">${items(' tabindex="-1"')}</span>`;
+  $('#ticker').innerHTML = `<span class="half">${items()}${copy.repeat(reps - 1)}</span><span class="half tape-copy" aria-hidden="true">${copy.repeat(reps)}</span>`;
+}
+async function tick() {
+  try {
+    const st = await api('/api/state'); if (paused && lastOk) return; // paused while the request was out
+    board(st);
+    lastOk = Date.now(); $('#upd').textContent = (paused ? 'Paused · updated ' : 'Updated ') + hhmmss(lastOk);
+  } catch {
+    $('#upd').innerHTML = `Updates unavailable${lastOk ? ' · last ' + hhmmss(lastOk) : ''} · <button class="lnk" type="button" data-retry>Retry</button>`;
+    if (!lastOk) { $('#tape').innerHTML = '<tr><td class="muted">The market is offline right now.</td></tr>'; }
+  }
+}
+const schedule = () => { clearInterval(timer); timer = paused ? 0 : setInterval(() => { if (!document.hidden) tick(); }, 20000); };
+function setPaused(v) { // the board's button and the tape's button share one state: no new prices and a still tape
+  paused = v; document.documentElement.classList.toggle('prices-paused', v);
+  for (const b of [$('#pause'), $('#tk-pause')]) { b.textContent = v ? 'Resume updates' : 'Pause updates'; b.setAttribute('aria-pressed', String(v)); }
+  if (v) { if (lastOk) $('#upd').textContent = 'Paused · updated ' + hhmmss(lastOk); } else tick();
+  schedule();
+}
+$('#pause').addEventListener('click', () => setPaused(!paused)); $('#tk-pause').addEventListener('click', () => setPaused(!paused));
+document.addEventListener('click', e => { if (e.target.closest('[data-retry]')) tick(); });
+tick(); schedule();
+
+document.addEventListener('click', e => { const tr = e.target.closest('tr[data-href]'); if (tr && !e.target.closest('a')) location.href = tr.dataset.href; });
+
+/* worked example: made-up inputs, CX's real fees and rules from engine.js, so it can't drift from the exchange */
+{
+  const SH = 100000, SOLD = 25000, IPO = 20, Q = 100, PX = 21, REV = 400000, COST = 300000, SPON = 0.5;
+  const gross = SOLD * IPO, lf = gross * LISTING_FEE, net = gross - lf, tv = Q * PX, tf = tv * TRADE_FEE, profit = REV - COST, pool = profit * PAYOUT, per = pool / SH;
+  const cash = net + profit - pool, risk = BASE_RISK + SPONSOR_RISK * SPON, pe = Math.min(PE_MAX, Math.max(PE_MIN, 1 / (risk - GROWTH))), eps4 = profit * 4 / SH, mv = eps4 * pe + cash / SH;
+  const neg = x => '−' + money(x), pc = x => +(x * 100).toFixed(2) + '%', n = x => x.toLocaleString('en-US');
+  const col = (k, h, rows, note) => `<div><span class="k">${k}</span><h3>${h}</h3><table><tbody>${rows.map(([a, b, t]) => `<tr${t ? ' class="t"' : ''}><td>${a}</td><td class="n">${b}</td></tr>`).join('')}</tbody></table><p>${note}</p></div>`;
+  $('#calc').innerHTML =
+    col('I', 'The IPO', [[`${n(SOLD)} shares × ${money(IPO)}`, money(gross)], [`Listing fee, ${pc(LISTING_FEE)}`, neg(lf)], ['Into the business', money(net), 1]],
+      `The creator sells ${pc(SOLD / SH)} of a ${n(SH)}-share company and keeps the rest. The money goes into the business, not the creator's pocket.`)
+    + col('II', 'A trade', [[`Buy ${Q} shares × ${money(PX)}`, money(tv)], [`Trading fee, ${pc(TRADE_FEE)}`, money(tf)], ['You pay', money(tv + tf), 1]],
+      'The fee is paid by the order that trades against one already waiting in the book. The other side pays nothing.')
+    + col('III', 'A quarter', [['Revenue', money(REV)], ['Costs, creator pay included', neg(COST)], ['Profit', money(profit)], [`Paid out, ${pc(PAYOUT)}`, money(pool)], [`Per share, all ${n(SH)}`, money(per), 1]],
+      `${Q} shares get ${money(per * Q)}. The rest of the profit stays in the business. A loss pays nothing and has to be made up first.`)
+    + col('IV', 'The model value', [['Profit per share, a year', money(eps4)], [`Risk rate: ${pc(BASE_RISK)} base, +${pc(SPONSOR_RISK * SPON)} for half from sponsors`, pc(risk)], [`P/E: 1 ÷ (risk − ${pc(GROWTH)} growth)`, pe.toFixed(1) + '×'], ['Plus cash per share', money(cash / SH)], ['Model value a share', money(mv), 1]],
+      "CX's estimate of what a share is worth, shown beside the price on every listing. A model, not a price you can trade at.");
+  $('#payout-note').innerHTML = `<b>${pc(PAYOUT)} of profit is a payout ratio, not a ${pc(PAYOUT)} return.</b> Here a share bought at ${money(PX)} would earn ${money(per * 4)} a year if every quarter matched this one: a ${pc(per * 4 / PX)} dividend yield. Profit can fall, and the dividend with it.`;
+}
+
+/* film: plays only while on screen, never for reduced motion (a still frame and native controls instead) */
+{ const v = $('#film'), b = $('#film-btn'), calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let paused = calm;
+  const sync = () => { b.textContent = paused ? 'Play' : 'Pause'; b.setAttribute('aria-pressed', String(paused)); };
+  if (calm) v.controls = true;
+  new IntersectionObserver(([e]) => { if (e.isIntersecting && !paused) v.play().catch(() => {}); else v.pause(); }, { threshold: .25 }).observe(v);
+  b.addEventListener('click', () => { paused = !paused; paused ? v.pause() : v.play().catch(() => {}); sync(); });
+  // the hero's "Watch the film" jumps down to it and plays it from the start
+  $('#watch-btn').addEventListener('click', e => { e.preventDefault(); v.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' }); paused = false; v.currentTime = 0; v.play().catch(() => {}); sync(); });
+  sync(); }
+
+/* waitlist */
+const roleChanged = () => { const r = document.querySelector('input[name=role]:checked').value; $('#w-handle-f').hidden = r !== 'creator'; };
+document.querySelectorAll('input[name=role]').forEach(r => r.addEventListener('change', roleChanged));
+const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); // same rule as the server
+function emailCheck() {
+  const ok = emailOk($('#w-email').value), m = $('#w-email-err');
+  m.hidden = ok; m.textContent = ok ? '' : 'Enter an email address like name@example.com.'; $('#w-email').setAttribute('aria-invalid', String(!ok)); return ok;
+}
+$('#w-email').addEventListener('blur', () => { if ($('#w-email').value.trim()) emailCheck(); });
+$('#wform').addEventListener('submit', async e => {
+  e.preventDefault();
+  if ($('#w-go').disabled) return;
+  if (!emailCheck()) { $('#w-email').focus(); return; }
+  const body = { role: document.querySelector('input[name=role]:checked').value, name: $('#w-name').value, email: $('#w-email').value, handle: $('#w-handle').value, note: $('#w-note').value };
+  if (body.role !== 'creator') body.handle = '';
+  $('#w-err').hidden = true; $('#w-go').disabled = true; $('#w-go').textContent = 'Joining…';
+  try { await api('/api/waitlist', body); $('#wform').hidden = true; $('#wdone').hidden = false; $('#wdone').setAttribute('tabindex', '-1'); $('#wdone').focus(); }
+  catch (err) { $('#w-err').textContent = err.status ? err.message : 'Couldn’t reach CX. Your details are still here; try again.'; $('#w-err').hidden = false; $('#w-go').textContent = 'Try again'; }
+  finally { $('#w-go').disabled = false; if ($('#w-go').textContent === 'Joining…') $('#w-go').textContent = 'Join the waitlist'; }
+});
+
+/* phone menu: a disclosure button; Escape closes it and puts focus back on the button */
+const hdr = document.querySelector('header'), mb = $('#menu-btn');
+const menu = open => { hdr.classList.toggle('open', open); mb.setAttribute('aria-expanded', String(open)); };
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'));
+$('#nav').addEventListener('click', e => { if (e.target.closest('a')) menu(false); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && hdr.classList.contains('open')) { menu(false); mb.focus(); } });
+
+/* FAQ answers have stable ids: /#faq-fees opens that answer */
+const openHash = () => { const d = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (d && d.tagName === 'DETAILS') { for (let p = d; p; p = p.parentElement.closest('details')) p.open = true; d.scrollIntoView(); } };
+addEventListener('hashchange', openHash); openHash();
+
+/* header: a reading-progress hairline and the section on screen underlined in the nav */
+const onScroll = () => { const d = document.documentElement; $('#prog').style.transform = `scaleX(${d.scrollTop / Math.max(1, d.scrollHeight - d.clientHeight)})`; };
+addEventListener('scroll', onScroll, { passive: true }); onScroll();
+const navLinks = [...document.querySelectorAll('#nav a[href^="#"]')];
+const spy = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) navLinks.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); }, { rootMargin: '-45% 0px -50% 0px' });
+document.querySelectorAll('.hero, .plate').forEach(x => spy.observe(x));
+
+</script>
+</body>
+</html>

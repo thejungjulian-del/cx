@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CX Investor Deck</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Libre+Caslon+Text:wght@400;700&display=swap">
+<style>
+@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}} /* a quick cross-fade between CX pages; browsers without it just navigate */
+::view-transition-old(root),::view-transition-new(root){animation-duration:150ms}
+/* Each slide is a 16:9 frame; sizes are in --u (1% of the slide's width), so it scales on screen and prints
+   one slide per landscape page (File > Print > Save as PDF). On phones the slides stack at a readable size. */
+:root{--page:#e9edf3;--paper:#ffffff;--ink:#111827;--muted:#5b6474;--line:#e1e6ee;--soft:#eef2f7;--navy:#000;--navy-ink:#ffffff;--link:#2f6bf0;--bar:#3b7cff;--track:#e3e9f2;--up:#0f8a52;
+  --serif:"Libre Caslon Text",Georgia,"Times New Roman",serif;--sans:"Inter","Helvetica Neue",Arial,sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#000;color-scheme:dark}}
+:root[data-theme="dark"]{--page:#000;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);font-family:var(--sans);color:var(--ink)}
+.bar{position:sticky;top:0;z-index:2;display:flex;gap:16px;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--navy);color:var(--navy-ink);font-size:13px;border-bottom:1px solid #1b1f26}
+.bar a,.bar button{color:var(--navy-ink);font:600 13px var(--sans);background:none;border:1px solid rgba(255,255,255,.4);padding:6px 12px;cursor:pointer;text-decoration:none}
+.deck{display:flex;flex-direction:column;gap:24px;padding:24px 16px 48px;max-width:1280px;margin-inline:auto}
+.slide{container-type:inline-size;aspect-ratio:16/9;scroll-margin-top:48px;background:var(--paper);box-shadow:0 1px 3px rgba(0,0,0,.12);overflow:hidden;position:relative}
+.in{--u:1cqw;height:100%;padding:calc(var(--u)*4.4) calc(var(--u)*5);display:flex;flex-direction:column;gap:calc(var(--u)*1.6);font-size:calc(var(--u)*1.55);line-height:1.45}
+.k{font:500 calc(var(--u)*.95) var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+h1{font:400 calc(var(--u)*6)/1.14 var(--serif);margin:0;letter-spacing:-.02em}
+h2{font:400 calc(var(--u)*3.4)/1.1 var(--serif);margin:0;max-width:30em;text-wrap:balance;letter-spacing:-.01em}
+h3{font:400 calc(var(--u)*2)/1.2 var(--serif);margin:0 0 calc(var(--u)*.6)}
+p{margin:0} .muted{color:var(--muted)}
+.grow{flex:1;min-height:0}
+.cols{display:grid;gap:calc(var(--u)*2);grid-template-columns:repeat(var(--n,3),minmax(0,1fr))}
+.box{border-top:1px solid var(--ink);padding:calc(var(--u)*1.4) 0 0}
+.big{font:400 calc(var(--u)*3.8)/1.12 var(--serif);letter-spacing:-.02em;margin-bottom:calc(var(--u)*.5)}
+.src{position:absolute;left:calc(var(--u)*5);right:calc(var(--u)*5);bottom:calc(var(--u)*1.8);font-size:calc(var(--u)*.9);color:var(--muted)}
+.pg{position:absolute;right:calc(var(--u)*2.4);top:calc(var(--u)*2.2);font:400 calc(var(--u)*1.1) var(--serif);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:calc(var(--u)*1.3)}
+td,th{text-align:left;padding:calc(var(--u)*.7) calc(var(--u)*1) calc(var(--u)*.7) 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 calc(var(--u)*.9) var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+td b{font-weight:700}
+ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:calc(var(--u)*.6)}
+img.shot{width:100%;height:100%;object-fit:cover;object-position:top left;border:1px solid var(--line);display:block}
+.cover{background:#000;color:var(--navy-ink);outline:1px solid #1b1f26;outline-offset:-1px} /* black like the site; the hairline keeps its frame on a black page */
+.cover .k,.cover .muted{color:rgba(255,255,255,.7)}
+.seal{width:calc(var(--u)*6);height:calc(var(--u)*6);color:#fff}
+.seal svg{width:100%;height:100%;display:block}
+.bars{display:flex;align-items:flex-end;gap:calc(var(--u)*3);height:calc(var(--u)*20)}
+.bars div{width:calc(var(--u)*9);background:var(--bar);border-radius:4px 4px 0 0;position:relative}
+.bars span{position:absolute;bottom:100%;left:0;right:0;text-align:center;font:700 calc(var(--u)*1.7) var(--serif);padding-bottom:calc(var(--u)*.4)}
+.bars em{position:absolute;top:100%;left:0;right:0;text-align:center;font-style:normal;font-size:calc(var(--u)*1.1);color:var(--muted);padding-top:calc(var(--u)*.4)}
+.phase{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--line)}
+.phase div{padding:calc(var(--u)*1.4);border-right:1px solid var(--line)} .phase div:last-child{border-right:0}
+.phase .now{background:var(--soft);box-shadow:inset 0 3px 0 var(--up)}
+.n{font-variant-numeric:tabular-nums}
+@media (max-width:760px){
+  .wide{display:none}
+  .slide{aspect-ratio:auto;container-type:normal}
+  .in{--u:9px;height:auto;padding:28px 18px 56px}
+  .cols,.phase,.split{grid-template-columns:minmax(0,1fr)!important}
+  .phase div{border-right:0;border-bottom:1px solid var(--line)}
+  h1{font-size:40px}
+  .shotwrap{height:240px}
+  table{display:block;overflow-x:auto}
+}
+@media print{
+  @page{size:13.333in 7.5in;margin:0}
+  body{background:none}
+  .bar{display:none}
+  .deck{padding:0;gap:0;max-width:none}
+  .slide{width:13.333in;height:7.5in;aspect-ratio:auto;box-shadow:none;break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+<style>
+.cxd-bar{position:relative;z-index:5;box-sizing:border-box;height:24px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;background:#000;color:#878d97;border-bottom:1px solid #1b1f26;font:500 11px/1 "Inter",-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.04em;white-space:nowrap;overflow:hidden}
+.cxd-bar button{all:unset;cursor:pointer;color:#b4b9c2;text-decoration:underline;text-decoration-color:#2a2f37;text-underline-offset:3px}
+.cxd-bar button:hover{color:#eceef1} .cxd-bar button:focus-visible{outline:1px solid #eceef1;outline-offset:2px}
+@media print{.cxd-bar{display:none}}
+</style>
+<script src="demo-api.js"></script>
+</head>
+<body>
+<div class="cxd-bar" role="note"><span>Demo · runs in your browser · play money</span><span aria-hidden="true">·</span><button type="button" data-demo-reset>Reset demo</button></div>
+<div class="bar"><span><b>CX</b> · Investor deck<span class="wide"> · Figures marked LIVE come from the CX server, so they’re blank in this demo</span></span><span style="display:flex;gap:8px"><a href="./">CX home</a><button type="button" onclick="print()">Save as PDF</button></span></div>
+<div class="deck">
+
+<section class="slide cover"><div class="in" style="justify-content:space-between">
+  <div style="display:flex;align-items:center;gap:calc(var(--u)*1.6)"><div class="seal"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.95 11.34a0.33 0.33 0 1 0 0.66 0a0.33 0.33 0 1 0 -0.66 0M11.81 13.68a0.34 0.34 0 1 0 0.68 0a0.34 0.34 0 1 0 -0.68 0M12.97 10.27a0.35 0.35 0 1 0 0.70 0a0.35 0.35 0 1 0 -0.70 0M9.10 12.45a0.36 0.36 0 1 0 0.72 0a0.36 0.36 0 1 0 -0.72 0M14.09 13.57a0.37 0.37 0 1 0 0.75 0a0.37 0.37 0 1 0 -0.75 0M10.78 8.89a0.38 0.38 0 1 0 0.77 0a0.38 0.38 0 1 0 -0.77 0M9.99 15.11a0.39 0.39 0 1 0 0.79 0a0.39 0.39 0 1 0 -0.79 0M15.13 10.71a0.40 0.40 0 1 0 0.81 0a0.40 0.40 0 1 0 -0.81 0M7.88 10.47a0.41 0.41 0 1 0 0.83 0a0.41 0.41 0 1 0 -0.83 0M13.37 15.84a0.43 0.43 0 1 0 0.85 0a0.43 0.43 0 1 0 -0.85 0M12.90 7.75a0.44 0.44 0 1 0 0.87 0a0.44 0.44 0 1 0 -0.87 0M7.52 14.34a0.45 0.45 0 1 0 0.89 0a0.45 0.45 0 1 0 -0.89 0M16.29 13.04a0.46 0.46 0 1 0 0.91 0a0.46 0.46 0 1 0 -0.91 0M8.63 7.87a0.47 0.47 0 1 0 0.94 0a0.47 0.47 0 1 0 -0.94 0M10.85 17.19a0.48 0.48 0 1 0 0.96 0a0.48 0.48 0 1 0 -0.96 0M15.65 8.51a0.49 0.49 0 1 0 0.98 0a0.49 0.49 0 1 0 -0.98 0M5.92 11.77a0.50 0.50 0 1 0 1.00 0a0.50 0.50 0 1 0 -1.00 0M15.57 16.06a0.51 0.51 0 1 0 1.02 0a0.51 0.51 0 1 0 -1.02 0M11.21 6.09a0.52 0.52 0 1 0 1.04 0a0.52 0.52 0 1 0 -1.04 0M7.58 16.66a0.53 0.53 0 1 0 1.06 0a0.53 0.53 0 1 0 -1.06 0M17.63 11.17a0.54 0.54 0 1 0 1.08 0a0.54 0.54 0 1 0 -1.08 0M6.21 8.36a0.55 0.55 0 1 0 1.10 0a0.55 0.55 0 1 0 -1.10 0M12.87 18.36a0.56 0.56 0 1 0 1.13 0a0.56 0.56 0 1 0 -1.13 0M14.74 6.22a0.57 0.57 0 1 0 1.15 0a0.57 0.57 0 1 0 -1.15 0M4.93 14.07a0.58 0.58 0 1 0 1.17 0a0.58 0.58 0 1 0 -1.17 0M17.71 14.91a0.59 0.59 0 1 0 1.19 0a0.59 0.59 0 1 0 -1.19 0M8.66 5.47a0.60 0.60 0 1 0 1.21 0a0.60 0.60 0 1 0 -1.21 0M8.94 18.79a0.62 0.62 0 1 0 1.23 0a0.62 0.62 0 1 0 -1.23 0M17.87 8.58a0.63 0.63 0 1 0 1.25 0a0.63 0.63 0 1 0 -1.25 0M4.14 10.10a0.64 0.64 0 1 0 1.27 0a0.64 0.64 0 1 0 -1.27 0M15.46 18.39a0.65 0.65 0 1 0 1.29 0a0.65 0.65 0 1 0 -1.29 0M12.65 4.39a0.66 0.66 0 1 0 1.31 0a0.66 0.66 0 1 0 -1.31 0M5.13 16.80a0.67 0.67 0 1 0 1.34 0a0.67 0.67 0 1 0 -1.34 0M19.25 12.66a0.68 0.68 0 1 0 1.36 0a0.68 0.68 0 1 0 -1.36 0M5.83 6.07a0.69 0.69 0 1 0 1.38 0a0.69 0.69 0 1 0 -1.38 0M11.34 20.19a0.70 0.70 0 1 0 1.40 0a0.70 0.70 0 1 0 -1.40 0M16.87 5.85a0.71 0.71 0 1 0 1.42 0a0.71 0.71 0 1 0 -1.42 0M2.89 12.78a0.72 0.72 0 1 0 1.44 0a0.72 0.72 0 1 0 -1.44 0M18.07 17.16a0.73 0.73 0 1 0 1.46 0a0.73 0.73 0 1 0 -1.46 0M9.71 3.50a0.74 0.74 0 1 0 1.48 0a0.74 0.74 0 1 0 -1.48 0M6.58 19.41a0.75 0.75 0 1 0 1.50 0a0.75 0.75 0 1 0 -1.50 0M19.78 9.66a0.76 0.76 0 1 0 1.53 0a0.76 0.76 0 1 0 -1.53 0M3.25 7.91a0.77 0.77 0 1 0 1.55 0a0.77 0.77 0 1 0 -1.55 0M14.37 20.51a0.78 0.78 0 1 0 1.57 0a0.78 0.78 0 1 0 -1.57 0M14.67 3.50a0.79 0.79 0 1 0 1.59 0a0.79 0.79 0 1 0 -1.59 0M2.81 15.97a0.81 0.81 0 1 0 1.61 0a0.81 0.81 0 1 0 -1.61 0M20.15 14.76a0.82 0.82 0 1 0 1.63 0a0.82 0.82 0 1 0 -1.63 0M6.38 3.82a0.83 0.83 0 1 0 1.65 0a0.83 0.83 0 1 0 -1.65 0M9.15 21.36a0.84 0.84 0 1 0 1.67 0a0.84 0.84 0 1 0 -1.67 0M19.04 6.40a0.85 0.85 0 1 0 1.69 0a0.85 0.85 0 1 0 -1.69 0M1.44 10.79a0.86 0.86 0 1 0 1.72 0a0.86 0.86 0 1 0 -1.72 0M17.53 19.52a0.87 0.87 0 1 0 1.74 0a0.87 0.87 0 1 0 -1.74 0M11.49 2.04a0.88 0.88 0 1 0 1.76 0a0.88 0.88 0 1 0 -1.76 0M4.05 19.16a0.89 0.89 0 1 0 1.78 0a0.89 0.89 0 1 0 -1.78 0M21.24 11.48a0.90 0.90 0 1 0 1.80 0a0.90 0.90 0 1 0 -1.80 0"/></svg></div><span style="color:#fff"><b style="display:block;font:700 calc(var(--u)*4.2)/1 'Libre Caslon Text',Georgia,serif">CX</b><span style="display:block;margin-top:calc(var(--u)*.9);font:400 calc(var(--u)*1.3)/1 'Libre Caslon Text',Georgia,serif;letter-spacing:.3em">CREATOR EXCHANGE</span></span></div>
+  <div><h1>The stock market<br>for <i>creators</i>.</h1>
+    <p style="font-size:calc(var(--u)*2);margin-top:calc(var(--u)*2);max-width:34em;color:rgba(255,255,255,.85)">Every creator becomes a company: every platform, every sponsor, one business. Fans and investors buy shares, trade them, and get a dividend from the profit every quarter.</p></div>
+  <p class="muted">Julian Jung, founder · Investor preview · November 2026</p>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">02</span>
+  <div class="k">The problem</div>
+  <h2>Top creators earn like small companies but can't raise money like one.</h2>
+  <div class="cols grow" style="align-content:start">
+    <div class="box"><div class="big n" id="d-median">—</div><p class="muted">estimated yearly revenue of the median creator in CX Research <span class="k">live</span></p><p style="margin-top:calc(var(--u)*1)">Banks don't lend against views. Selling the channel means losing it. Most creators fund growth out of pocket.</p></div>
+    <div class="box"><div class="big n" id="d-spons">—</div><p class="muted">of that revenue comes from sponsors <span class="k">live</span></p><p style="margin-top:calc(var(--u)*1)">Brand deals are lumpy and hard to borrow against, so income swings quarter to quarter.</p></div>
+    <div class="box"><div class="big">0%</div><p class="muted">of a creator's upside their fans can own today</p><p style="margin-top:calc(var(--u)*1)">Fans already pay for memberships and merch, but they have no way to share in a creator's success.</p></div>
+  </div>
+  <p class="src">Estimates from public YouTube, TikTok and Twitch data for the creators tracked in CX Research. Method: cx/research → Method.</p>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">03</span>
+  <div class="k">The solution</div>
+  <h2>CX: an IPO, an exchange and a research desk, built for creators.</h2>
+  <div class="cols grow" style="align-content:start">
+    <div class="box"><h3>Creator IPOs</h3><p>A creator sells, say, 25% of their company and keeps the rest. CX verifies the numbers, takes bids during a roadshow and prices the IPO in an auction.</p></div>
+    <div class="box"><h3>CX Markets</h3><p>Shares trade on an order book like any stock. Creators file quarterly earnings (CX-Q) and pay out the share of profit their charter promises (50% to 100%) as a dividend.</p></div>
+    <div class="box"><h3>CX Research</h3><p>A public valuation for every creator, listed or not, refreshed daily. It's how creators find out what they're worth, and how they find CX.</p></div>
+  </div>
+  <p style="font-size:calc(var(--u)*1.8)"><b>Unlike GigaStar, CX counts all of a creator's revenue:</b> YouTube, TikTok, Instagram, Twitch, sponsors and merch.</p>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">04</span>
+  <div class="k">How it works</div>
+  <h2>Every step of a real IPO, rebuilt for one person.</h2>
+  <table><thead><tr><th style="width:16%">Step</th><th>On Wall Street</th><th>On CX</th></tr></thead><tbody>
+    <tr><td><b>File</b></td><td>S-1 registration, audited financials</td><td>CX-1 filing: 12+ months of revenue by source; identity confirmed by a code in the creator's bio; statements uploaded and verified</td></tr>
+    <tr><td><b>Price range</b></td><td>Bankers' valuation</td><td>Model value ±10%: profit times a P/E set by risk (15% plus extra for sponsor-heavy and unverified revenue), plus the business's cash</td></tr>
+    <tr><td><b>Roadshow</b></td><td>Banks collect orders from funds</td><td>Anyone bids inside the range for a few days; bids are private</td></tr>
+    <tr><td><b>Pricing</b></td><td>Set by bankers, often underpriced</td><td>Uniform-price auction: the highest price that sells every share; under 50% demand and the IPO is withdrawn</td></tr>
+    <tr><td><b>First trade</b></td><td>Opening auction on the exchange</td><td>Opening auction: the single price that matches the most shares</td></tr>
+    <tr><td><b>Lock-up</b></td><td>Insiders can't sell for ~180 days</td><td>Half the money raised is held back and released over the first 4 quarterly reports</td></tr>
+    <tr><td><b>Reporting</b></td><td>10-Q, 10-K, 8-K</td><td>CX-Q every quarter, CX-K compiled automatically, CX-E for big events</td></tr>
+  </tbody></table>
+</div></section>
+
+<section class="slide"><div class="in split" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:calc(var(--u)*3)"><span class="pg">05</span>
+  <div style="display:flex;flex-direction:column;gap:calc(var(--u)*1.4)">
+    <div class="k">The product, working today</div>
+    <h2>Built and running, not a mockup.</h2>
+    <ul>
+      <li>Matching engine with price-time priority, limit and market orders, price bands and self-trade prevention</li>
+      <li>Full IPO flow: identity check, revenue verification, roadshow, auction, opening cross, lock-up</li>
+      <li>Quarterly earnings, dividends and late-filer halts</li>
+      <li>A market maker so there's usually someone to trade with</li>
+      <li>CX Research: <span id="d-creators">—</span> creators valued from public data, refreshed daily, plus a "what's my channel worth?" tool</li>
+    </ul>
+  </div>
+  <div class="shotwrap" style="min-height:0"><img class="shot" src="shots/markets.png" alt="CX Markets: candlestick chart, order ticket and watchlist"></div>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">06</span>
+  <div class="k">The market</div>
+  <h2>The creator economy is heading toward half a trillion dollars.</h2>
+  <div class="cols grow" style="--n:2;align-items:center">
+    <div style="padding:calc(var(--u)*3) 0 calc(var(--u)*4)"><div class="bars" role="img" aria-label="Creator economy: $250 billion in 2023, $480 billion projected for 2027">
+      <div style="height:52%"><span>$250B</span><em>2023</em></div><div style="height:100%"><span>$480B</span><em>2027 projected</em></div></div></div>
+    <div style="display:flex;flex-direction:column;gap:calc(var(--u)*1.4)">
+      <div class="box"><b>Who CX is for first:</b> creators earning $250K–$2M a year with steady, provable revenue. That's a small share of creators, and they're the ones a capital market can price.</div>
+      <div class="box"><b>Size of one listing:</b> $1M of yearly revenue at a 40% margin (mid-range for most niches once the creator is paid) is $400K of profit; at a 4.5× P/E the company is worth about $1.8M. Selling 25% of it raises about <b>$430K</b>, which earns CX about <b>$23K</b> in listing fees before any trading.</div>
+      <div class="box"><b>Already tracked:</b> the <span id="d-creators2">—</span> creators in CX Research earn an estimated <b id="d-rev">—</b> a year combined. <span class="k">live</span></div>
+    </div>
+  </div>
+  <p class="src">Market size: Goldman Sachs Research, "The creator economy could approach half-a-trillion dollars by 2027". Listing example uses CX's model at a 30% risk rate.</p>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">07</span>
+  <div class="k">Business model</div>
+  <h2>CX earns like an exchange: on every listing and every trade.</h2>
+  <div class="cols" style="--n:3">
+    <div class="box"><div class="big">5%</div><h3>Listing fee</h3><p>of money raised in each IPO, paid by the creator out of proceeds. The same job an underwriter's spread does, at less than the usual ~7%.</p></div>
+    <div class="box"><div class="big">0.5%</div><h3>Trading fee</h3><p>of trade value, paid by the side whose order fills on arrival. Both sides pay in the opening auction.</p></div>
+    <div class="box"><div class="big">Next</div><h3>Data</h3><p>CX Research as a paid product for brands, agencies and lenders that need to value creators, like CapIQ for the creator economy.</p></div>
+  </div>
+  <p class="muted">What it costs: securities counsel, a registered partner's fees per offering, revenue verification, and capital for the market maker.</p>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">08</span>
+  <div class="k">Competition</div>
+  <h2>The idea is proven. The first versions only sell one slice of revenue.</h2>
+  <table><thead><tr><th style="width:17%">Company</th><th>What it does</th><th>Where it stands</th></tr></thead><tbody>
+    <tr><td><b>GigaStar</b></td><td>Fans invest in a share of a YouTube channel's <b>AdSense revenue only</b>, under Regulation Crowdfunding</td><td>37 offerings, about $6.9M raised, $1.2M+ paid out (company figures). Secondary trading on an SEC-registered ATS since mid-2026, after a 12-month hold</td></tr>
+    <tr><td><b>Fantex</b></td><td>Tracking stocks tied to pro athletes' earnings (2013–2016)</td><td>IPO demand was weak: it bought 48% of one offering itself, then moved to private placements</td></tr>
+    <tr><td><b>Catalog buyers &amp; lenders</b></td><td>Upfront cash for licensing a creator's back catalog, or loans against platform payouts</td><td>The creator gets cash but fans get nothing, and there's no market</td></tr>
+    <tr><td style="color:var(--up)"><b>CX</b></td><td>Every platform plus sponsors and merch; public research on every creator; standard quarterly filings</td><td>Working preview with play money; partner-first path to real offerings</td></tr>
+  </tbody></table>
+  <p><b>Why all revenue matters:</b> for the median YouTube creator in CX Research, about <b id="d-nonads">70%</b> of estimated revenue comes from outside YouTube ads, so an AdSense-only product can't price most of what they earn. <span class="k">live</span></p>
+  <p class="src">GigaStar figures are company-reported (gigastar.io and its Wefunder updates, 2026). Fantex: Fortune, Law360 (2014–2016).</p>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">09</span>
+  <div class="k">Getting creators</div>
+  <h2>Research brings creators in. Every IPO markets the next one.</h2>
+  <div class="cols grow" style="align-content:start">
+    <div class="box"><h3>1. Value them first</h3><p>Every creator gets a public CX Research profile and can check what their channel is worth in 10 seconds. Each profile links to "list on CX".</p></div>
+    <div class="box"><h3>2. Start in the middle</h3><p>Pilot with creators making $250K–$2M a year: big enough for a real raise, small enough to want one, with fans who'll show up.</p></div>
+    <div class="box"><h3>3. Fans do the marketing</h3><p>A creator's IPO is content. They announce it to their own audience, and every shareholder has a reason to share.</p></div>
+  </div>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">10</span>
+  <div class="k">Regulatory path</div>
+  <h2>Partner first, so no real dollar moves until it's legal.</h2>
+  <div class="phase">
+    <div class="now"><span class="k">Now</span><h3>Preview</h3><p>Play-money exchange, CX Research, the waitlist and creator conversations.</p></div>
+    <div><span class="k">Next</span><h3>Pilot offerings</h3><p>Securities counsel; 3–5 pilot creators raise under Regulation Crowdfunding (up to $5M each per year) through a registered funding portal.</p></div>
+    <div><span class="k">Then</span><h3>Trading</h3><p>After the 12-month resale hold, shares trade on an ATS run by a partner broker-dealer.</p></div>
+    <div><span class="k">Later</span><h3>Scale</h3><p>Regulation A for the biggest creators, and CX's own licenses once volume pays for them.</p></div>
+  </div>
+  <p class="muted">CX's reports (CX-1, CX-Q, CX-K) are designed to map onto the Form C and annual reports a real offering requires.</p>
+</div></section>
+
+<section class="slide"><div class="in"><span class="pg">11</span>
+  <div class="k">Traction <span style="color:var(--up)">· live</span></div>
+  <h2>Where CX is today.</h2>
+  <div class="cols" style="--n:4">
+    <div class="box"><div class="big n" id="t-wc">—</div><p class="muted">creators on the waitlist</p></div>
+    <div class="box"><div class="big n" id="t-wi">—</div><p class="muted">investors &amp; partners on the waitlist</p></div>
+    <div class="box"><div class="big n" id="t-acc">—</div><p class="muted">accounts on CX Markets</p></div>
+    <div class="box"><div class="big n" id="t-trades">—</div><p class="muted">trades by real people</p></div>
+  </div>
+  <p class="muted" id="t-asof"></p>
+</div></section>
+
+<section class="slide cover"><div class="in" style="justify-content:space-between"><span class="pg" style="color:rgba(255,255,255,.6)">12</span>
+  <div class="k">The ask</div>
+  <div><h1 style="font-size:calc(var(--u)*4.4)">Help take CX from preview to the first real creator IPO.</h1>
+    <ul style="font-size:calc(var(--u)*1.9);margin-top:calc(var(--u)*2.4);gap:calc(var(--u)*1)">
+      <li><b>Pilot creators:</b> 5 creators ready to list first</li>
+      <li><b>A registered partner:</b> a funding portal or broker-dealer, and securities counsel</li>
+      <li><b>Pre-seed funding</b> for legal setup and the first offerings</li></ul></div>
+  <p class="muted">Julian Jung · see the live product at the CX home page</p>
+</div></section>
+</div>
+
+<script type="module">
+const $ = s => document.querySelector(s);
+// arrow keys and space step through slides
+const slides = [...document.querySelectorAll('.slide')];
+document.addEventListener('keydown', e => {
+  const step = { ArrowRight: 1, ArrowDown: 1, PageDown: 1, ' ': 1, ArrowLeft: -1, ArrowUp: -1, PageUp: -1 }[e.key];
+  if (!step) return;
+  e.preventDefault();
+  let cur = 0;
+  slides.forEach((s, i) => { if (s.getBoundingClientRect().top <= 80) cur = i; });
+  slides[Math.max(0, Math.min(slides.length - 1, cur + step))].scrollIntoView({ behavior: 'smooth' });
+});
+</script>
+</body>
+</html>
