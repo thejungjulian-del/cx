@@ -579,6 +579,10 @@ body{-webkit-font-smoothing:antialiased}
                 <label class="hint" style="display:flex;gap:8px"><input type="checkbox" id="c-ok"> I understand trading ends for good and the shares are cancelled.</label>
                 <button class="ghost bad" type="submit">Close and pay out the cash</button>
               </form>
+              <form id="buyback" class="ticket" hidden>
+                <p class="hint" id="bb-sum"></p>
+                <button class="ghost bad" type="submit">Buy back all shares</button>
+              </form>
               <form id="halt" class="ticket" hidden>
                 <div class="fld" id="h-field"><label for="h-reason">Exchange control: reason for halting trading</label><input id="h-reason" maxlength="120" placeholder="News pending: creator announced a break"></div>
                 <button class="ghost bad" id="h-go" type="submit">Halt trading</button>
@@ -1042,7 +1046,7 @@ async function loadHistory(t) {
   if (panel === 'watch') renderStats(); // the performance strip needs the history
   if ((h.rows.length ? h.rows[h.rows.length - 1][0] : 0) < bySym(t).lastId) loadHistory(t); // more arrived while this was loading
 }
-const NOTIFY = { buy: 'trades', sell: 'trades', payout: 'payouts', closing: 'payouts', ipo: 'ipos', withdrawn: 'ipos', alert: 'alerts' }; // activity kind -> setting that controls its pop-up
+const NOTIFY = { buy: 'trades', sell: 'trades', payout: 'payouts', closing: 'payouts', buyback: 'payouts', ipo: 'ipos', withdrawn: 'ipos', alert: 'alerts' }; // activity kind -> setting that controls its pop-up
 let sentAt = 0; // when this tab last sent an order: its own fills are already reported by the order's result, so don't repeat them
 const notified = new Set();
 // the n newest activity entries are the new ones: each gets its own pop-up, oldest first; a big burst is summed up after the first two
@@ -1074,10 +1078,11 @@ const describe = e => ({
   ipo: e.qty ? `IPO allocation: ${num(e.qty)} of the ${num(e.requested)} ${e.ticker} shares you bid for, at ${money(e.price)}` : `${e.ticker} IPO: no shares allocated (your bids were under the final price of ${money(e.price)})`,
   payout: `Dividend from ${e.ticker}: ${money(e.price)} a share on ${num(e.qty)} shares`,
   closing: `${e.ticker} closed: ${money(e.price)} a share paid out on ${num(e.qty)} shares, which are now cancelled`,
+  buyback: e.amount < 0 ? `${e.ticker} buyback: ${num(e.qty)} shares at ${money(e.price)}, ${money(-e.amount)} of it from your account` : `${e.ticker} bought back by the creator: your ${num(e.qty)} shares sold at ${money(e.price)}`,
   withdrawn: `${e.ticker} IPO was withdrawn. Your bid was released.`,
   alert: `Price alert: ${e.ticker} traded at ${money(e.price)}, ${e.op} your ${money(e.target)}`,
   placed: `Placed: ${e.side} ${num(e.qty)} ${e.ticker} ${e.market ? 'at market' : 'at ' + money(e.price)}`,
-  cancelled: `${num(e.qty)} ${e.ticker} ${e.why === 'reduced' ? 'taken off the order (made smaller)' : e.why === 'modified' ? 'moved to a new order' : e.why === 'market' ? 'not filled: a market order’s rest is cancelled' : e.why === 'closed' ? 'cancelled: the company closed' : 'cancelled'}`,
+  cancelled: `${num(e.qty)} ${e.ticker} ${e.why === 'reduced' ? 'taken off the order (made smaller)' : e.why === 'modified' ? 'moved to a new order' : e.why === 'market' ? 'not filled: a market order’s rest is cancelled' : e.why === 'closed' ? 'cancelled: the company closed' : e.why === 'bought back' ? 'cancelled: the creator bought back every share' : 'cancelled'}`,
   rejected: `Refused: ${e.side} ${num(e.qty)} ${e.ticker}. ${e.reason}`,
 }[e.kind] || e.kind);
 
@@ -1548,7 +1553,7 @@ function renderFilings(s) {
 let hView = 'orders', hSym = '', hShown = null;
 const cashCell = e => `<span class="${cls(e.amount)}">${money(e.amount || 0)}</span>`;
 // Every order you placed, from its 'placed' entry, the fills that point at it and how it ended (or a refusal with its reason)
-const WHY = { you: 'Cancelled', modified: 'Replaced', market: 'Rest cancelled', closed: 'Company closed' };
+const WHY = { you: 'Cancelled', modified: 'Replaced', market: 'Rest cancelled', closed: 'Company closed', 'bought back': 'Bought back' };
 function orderRows(entries) {
   const by = {};
   for (const e of entries) if (e.oid) (by[e.oid] ||= []).push(e);
@@ -1558,7 +1563,7 @@ function orderRows(entries) {
     const xs = by[e.oid] || [], fills = xs.filter(x => x.kind === 'buy' || x.kind === 'sell'), ends = xs.filter(x => x.kind === 'cancelled');
     const filled = fills.reduce((a, x) => a + x.qty, 0), size = e.qty - ends.filter(x => x.why === 'reduced').reduce((a, x) => a + x.qty, 0);
     const end = ends.find(x => x.why !== 'reduced'), avg = filled ? fills.reduce((a, x) => a + x.qty * x.price, 0) / filled : null;
-    const status = open.has(e.oid) ? (filled ? 'Partly filled, open' : 'Open') : end ? (filled && end.why !== 'closed' ? 'Partly filled · ' + WHY[end.why].toLowerCase() : WHY[end.why]) : 'Filled';
+    const status = open.has(e.oid) ? (filled ? 'Partly filled, open' : 'Open') : end ? (filled && !['closed', 'bought back'].includes(end.why) ? 'Partly filled · ' + WHY[end.why].toLowerCase() : WHY[end.why]) : 'Filled';
     return { ...e, filled, size, avg, status, note: end && end.why === 'modified' ? 'A new order took its place' : e.replaces ? 'Replaced an earlier order' : '' };
   });
 }
@@ -1570,10 +1575,10 @@ const HV = { // view -> [name, which entries, columns: [header, cell html, raw v
     ['Avg fill', e => e.avg ? money(e.avg) : '—', e => e.avg ? r2(e.avg) : '', 1],
     ['Status', e => `<span class="${e.status === 'Refused' ? 'down' : e.status === 'Filled' ? 'up' : ''}"${e.note ? ` title="${esc(e.note)}"` : ''}>${esc(e.status)}</span>${e.status === 'Refused' ? `<div class="muted" style="font-size:12px;white-space:normal">${esc(e.note)}</div>` : ''}`, e => e.status + (e.note ? ': ' + e.note : '')]],
     'No orders yet. Every order you place shows up here: what filled, at what average price, and how it ended.', orderRows],
-  fills: ['Fills', e => e.kind === 'buy' || e.kind === 'sell', [
-    ['Side', e => `<span class="${e.kind === 'buy' ? 'up' : 'down'}">${e.kind === 'buy' ? 'Buy' : 'Sell'}</span>`, e => e.kind],
+  fills: ['Fills', e => e.kind === 'buy' || e.kind === 'sell' || e.kind === 'buyback', [
+    ['Side', e => `<span class="${e.kind === 'buy' ? 'up' : 'down'}">${e.kind === 'buy' ? 'Buy' : e.kind === 'sell' ? 'Sell' : 'Buyback'}</span>`, e => e.kind],
     ['Shares', e => num(e.qty), e => e.qty, 1], ['Price', e => money(e.price), e => e.price, 1], ['Value', e => money(e.qty * e.price), e => r2(e.qty * e.price), 1],
-    ['Fee', e => money(e.fee || 0), e => e.fee || 0, 1], ['Realized P&L', e => e.kind === 'sell' ? `<span class="${cls(e.realized)}">${money(e.realized)}</span>` : '—', e => e.kind === 'sell' ? e.realized : '', 1],
+    ['Fee', e => money(e.fee || 0), e => e.fee || 0, 1], ['Realized P&L', e => e.realized !== undefined ? `<span class="${cls(e.realized)}">${money(e.realized)}</span>` : '—', e => e.realized ?? '', 1],
     ['Cash', cashCell, e => e.amount, 1]], 'No fills yet. When an order trades it shows up here with its price, fee and realized P&L.'],
   cash: ['Cash', e => Math.abs(e.amount || 0) > 0.001, [['Activity', e => esc(describe(e)), e => describe(e)], ['Amount', cashCell, e => e.amount, 1]], 'No cash has moved yet. Fills, IPO allocations and dividends show up here.'],
   ipos: ['IPOs', e => e.kind === 'ipo' || e.kind === 'withdrawn', [
@@ -1612,7 +1617,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { if (e.target.id === 'h-sym') { hSym = e.target.value; renderHistory(); } });
 
 // About a listing: who the creator is, the IPO's facts and key statistics, and everything filed or announced, newest first.
-const EV = { filing: 'CX-1', verify: 'Verified', listing: 'Approved', priced: 'Priced', opened: 'Opened', report: 'CX-Q', event: 'CX-E', notice: 'Notice', halt: 'Halted', resume: 'Resumed', closed: 'Closed' };
+const EV = { filing: 'CX-1', verify: 'Verified', listing: 'Approved', priced: 'Priced', opened: 'Opened', report: 'CX-Q', event: 'CX-E', notice: 'Notice', halt: 'Halted', resume: 'Resumed', closed: 'Closed', buyback: 'Bought back' };
 function renderAbout(s) {
   const box = $('#b-about');
   if (!s) { box.innerHTML = ''; return; }
@@ -1653,8 +1658,9 @@ document.addEventListener('click', e => {
 
 function renderTools(s) {
   const canFile = s.status === 'open' && reporter(s);
-  $('#report').hidden = !canFile; $('#event').hidden = !canFile; $('#close').hidden = !canFile;
+  $('#report').hidden = !canFile; $('#event').hidden = !canFile; $('#close').hidden = !canFile; $('#buyback').hidden = !canFile;
   if (canFile) $('#c-sum').textContent = `Every share, the creator's included, gets ${money(Math.max(0, s.cash || 0) / s.shares)} from the business's ${big(Math.max(0, s.cash || 0))} in cash. Then trading ends and the shares are cancelled.`;
+  if (canFile) $('#bb-sum').textContent = `The charter's buyback right: buy every share others hold at the ${E.BUYBACK_DAYS}-day average trade price plus ${E.BUYBACK_PREMIUM * 100}%, ${money(E.buybackPrice(s, Date.now()))} a share right now. The business's cash pays first, the creator the rest. Holders must sell, and trading ends for good.`;
   $('#r-title').textContent = `Q${s.quarters.length + 1} earnings (CX-Q): this quarter's revenue and costs${s.creatorId ? '' : ' (example creator, filed by the exchange)'}`;
   $('#halt').hidden = !(owner && s.status === 'open');
   $('#h-field').hidden = !!s.halt; $('#h-go').textContent = s.halt ? 'Resume trading' : 'Halt trading'; $('#h-go').className = s.halt ? 'ghost ok' : 'ghost bad';
@@ -2046,6 +2052,7 @@ function renderRules() {
       <li>Each creator's <b>charter</b> sets the share of each quarter's profit paid as a dividend: anywhere from ${PAYOUT_MIN * 100}% to 100%, chosen when they file and fixed after that. It's paid to every share, the creator's own included. Earlier losses are made up first, and the dividend is cut if paying it would leave the business with less than one quarter of costs in cash.</li>
       <li>The rest of the profit stays in the business and still belongs to the shareholders. So does the money raised in the IPO. If the creator closes the company, that cash is paid out to every share and trading ends.</li>
       <li>If a quarterly report is more than 30 days late, trading halts automatically until it's filed.</li>
+      <li>The creator can buy every share back at any time at the 90-day average price plus 20%, and shareholders have to sell. If two quarterly reports in a row are missed, the creator must buy every share back at that price.</li>
       <li>There is one kind of share, and the creator can't give any new investor, brand or manager a claim that ranks above it. The number of shares is fixed: no new shares, warrants or options.</li></ul>
     <h2>1. How a creator goes public</h2>
     <table class="grid"><thead><tr><th>Step</th><th>On Wall Street</th><th>On CX</th></tr></thead><tbody>
@@ -2944,6 +2951,18 @@ $('#close').addEventListener('submit', async e => {
   if (!$('#c-ok').checked) return toast('Tick the box to confirm. Closing can’t be undone.', true);
   const r = await run(() => api('/api/close', { ticker: sel, reason, rid: rid() }), paid => `${sel} closed. ${money(paid)} paid out to shareholders.`);
   if (r !== undefined) { $('#c-reason').value = ''; $('#c-ok').checked = false; }
+});
+$('#buyback').addEventListener('submit', async e => {
+  e.preventDefault();
+  const s = bySym(sel); if (!s) return;
+  const p = E.buybackPrice(s, Date.now()), n = s.shares - s.creatorShares, all = r2(p * n), cash = Math.min(Math.max(0, s.cash || 0), all);
+  const kv = (k, v) => `<div><span class="muted">${k}</span><span>${v}</span></div>`;
+  $('#cf-skip').parentElement.hidden = true; // no "don't ask again" for this one
+  const ok = await ask(`Buy back every ${s.ticker} share?`, kv('Price a share', `<b>${money(p)}</b>`) + kv('Shares held by others', num(n)) + kv('Total', `<b>${money(all)}</b>`)
+    + kv('From the business’s cash', money(cash)) + kv('From the creator’s account', money(all - cash))
+    + `<p class="hint">The ${E.BUYBACK_DAYS}-day average trade price plus ${E.BUYBACK_PREMIUM * 100}%. Holders must sell. Trading ends for good.</p>`, 'Buy back all shares', true);
+  $('#cf-skip').parentElement.hidden = false;
+  if (ok) await run(() => api('/api/buyback', { ticker: s.ticker, rid: rid() }), paid => `${s.ticker} bought back. ${money(paid)} paid to shareholders.`);
 });
 $('#halt').addEventListener('submit', async e => {
   e.preventDefault();

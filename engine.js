@@ -14,6 +14,7 @@ export const RULES = { minMonths: 12, minShares: 1000, minFloat: 0.1, maxFloat: 
 export const RANGE = 0.10, MAX_OVER_RANGE = 1.2, MIN_SUBSCRIBED = 0.5; // price range ±10%; can price 20% over it; under 50% demand = withdrawn
 export const BAND = 0.25, MAX_OPEN_ORDERS = 20;     // orders must be within 25% of the last trade; open-order cap per person per listing
 export const QUIET_DAYS = 10, FILING_DAYS = 91, GRACE_DAYS = 30, DAY = 864e5;
+export const BUYBACK_PREMIUM = 0.2, BUYBACK_DAYS = 90, MISSED_REPORTS = 2; // the charter's buyback: the 90-day average trade price +20%; forced after 2 missed CX-Qs
 export const BASE_RISK = 0.15, SPONSOR_RISK = 0.10, UNVERIFIED_RISK = 0.10; // yearly discount rates
 export const SOURCES = [ // [key, short name, what it covers]
   ['sponsors', 'Sponsors', 'Sponsors & brand deals, any platform'], ['youtube', 'YouTube', 'YouTube ads & memberships'],
@@ -83,7 +84,7 @@ export function listingProblems(f) {
 export function filingStatus(s, now) {
   if (s.status !== 'open') return null;
   const due = (s.quarters.length ? s.quarters[s.quarters.length - 1].t : s.opened) + FILING_DAYS * DAY;
-  return { due, overdue: now > due, delinquent: now > due + GRACE_DAYS * DAY };
+  return { due, overdue: now > due, delinquent: now > due + GRACE_DAYS * DAY, missed: now > due + (MISSED_REPORTS - 1) * FILING_DAYS * DAY };
 }
 // Ledger checks: every share accounted for, nobody below zero, no one offering shares they don't have.
 export function integrity(s) {
@@ -254,6 +255,18 @@ export function quoteHouse(s, now) {
   for (const o of buys) { o.qty = Math.floor(o.qty * k); if (o.qty > 0) s.orders.push(o); }
 }
 
+// Trading by day, kept on the listing for the buyback price: s.daily = [[day number, shares, dollars], ...], the last 90 days.
+// fill() adds every trade; the server replays the trade file into listings filed before this existed.
+export function tally(s, t, q, cash) {
+  const d = Math.floor(t / DAY), b = (s.daily ||= [])[s.daily.length - 1];
+  if (b && b[0] === d) { b[1] += q; b[2] = r2(b[2] + cash); } else s.daily = [...s.daily.filter(x => x[0] > d - BUYBACK_DAYS), [d, q, cash]];
+}
+// The charter's buyback price: the average trade price over the last 90 days (each share traded counts once) plus 20%.
+// No trades in that time: the last trade price, which is the IPO price if the stock never traded.
+export function buybackPrice(s, now) {
+  const d = Math.floor(now / DAY), recent = (s.daily || []).filter(x => x[0] > d - BUYBACK_DAYS), q = recent.reduce((a, x) => a + x[1], 0);
+  return r2((q ? recent.reduce((a, x) => a + x[2], 0) / q : s.last) * (1 + BUYBACK_PREMIUM));
+}
 // `payers` are the sides charged the trading fee; `oids` the buy and sell order ids, so each fill shows under its order.
 export function fill(s, buyer, seller, q, p, now, payers, oids = []) {
   const cash = r2(q * p), fee = r2(cash * TRADE_FEE), h = s.holders[seller], soldBasis = r2(s.basis[seller] * q / h);
@@ -266,7 +279,7 @@ export function fill(s, buyer, seller, q, p, now, payers, oids = []) {
   const bf = payers.includes(buyer) ? fee : 0, sf = payers.includes(seller) ? fee : 0;
   note(s, { uid: buyer, kind: 'buy', oid: oids[0], qty: q, price: p, amount: -r2(cash + bf), fee: bf, t: now });
   note(s, { uid: seller, kind: 'sell', oid: oids[1], qty: q, price: p, amount: r2(cash - sf), fee: sf, realized: r2(cash - soldBasis - sf), t: now });
-  s.last = p; s.volume += q;
+  s.last = p; s.volume += q; tally(s, now, q, cash);
   if (![buyer, seller].every(u => u === HOUSE || u === PUBLIC)) { s.realVolume = r2((s.realVolume || 0) + cash); s.realTrades = (s.realTrades || 0) + 1; } // traction counts people, not the simulation
   s.seq = (s.seq || 0) + 1;
   (s.fresh ||= []).push({ id: s.seq, t: now, p, q, b: buyer, s: seller }); // every execution, kept for good: the server moves these to the listing's trade file
@@ -371,6 +384,35 @@ export function closeCompany(s, reason, now) {
   Object.assign(s, { cash: r2(s.cash - paid), holders: {}, basis: {}, orders: [], halt: null, status: 'closed', closed: now, closePer: per });
   log(s, 'closed', `Company closed: ${reason}. Every share got ${money(per)} from the business's cash (${money(paid)} in all). Trading has ended.`, now);
   return paid;
+}
+// The charter's buyback right: the creator buys every share held by others at buybackPrice, and holders must sell.
+// The business's cash pays first, the creator's own account the rest. The creator then owns every share and trading ends for good.
+// `creatorId` is the creator's account; example listings have none, so their simulated creator (CREATOR) pays.
+export function buyBack(s, creatorId, reason, now) {
+  if (s.status !== 'open') throw new Error('Only trading listings can be bought back.');
+  const price = buybackPrice(s, now);
+  let paid = 0, bought = 0;
+  for (const [uid, h] of Object.entries(s.holders)) {
+    if (uid === CREATOR || uid === creatorId) continue;
+    const amt = r2(h * price); paid += amt; bought += h;
+    add(s.flows, uid, amt);
+    note(s, { uid, kind: 'buyback', qty: h, price, amount: amt, realized: r2(amt - (s.basis[uid] || 0)), t: now });
+  }
+  paid = r2(paid);
+  const fromCash = r2(Math.min(Math.max(0, s.cash), paid)), fromCreator = r2(paid - fromCash);
+  // ponytail: the creator's account can go below zero to cover a forced buyback (a debt they owe), with no limit, interest or collection; a real exchange would hold a bond or escrow
+  if (fromCreator) { add(s.flows, creatorId || CREATOR, -fromCreator); note(s, { uid: creatorId || CREATOR, kind: 'buyback', qty: bought, price, amount: -fromCreator, t: now }); }
+  for (const o of s.orders) noteCancel(s, o, o.qty, 'bought back', now);
+  Object.assign(s, { cash: r2(s.cash - fromCash), holders: { [CREATOR]: s.shares }, basis: {}, orders: [], halt: null, status: 'closed', closed: now, closePer: price, boughtBack: now });
+  log(s, 'buyback', `Bought back: ${reason}. The creator bought every share held by others at ${money(price)} (the ${BUYBACK_DAYS}-day average trade price plus ${BUYBACK_PREMIUM * 100}%), ${money(paid)} in all, ${money(fromCash)} of it from the business's cash. Trading has ended.`, now);
+  return paid;
+}
+// The charter's missed-reports rule: two CX-Qs missed in a row and the creator must buy back every share.
+export function buyBackIfMissed(s, now) {
+  const f = filingStatus(s, now);
+  if (!f || !f.missed) return false;
+  buyBack(s, s.creatorId, 'missed two quarterly reports', now);
+  return true;
 }
 
 export function account(stocks, uid) {

@@ -51,7 +51,13 @@
       if (x) { a.fired = x.t; a.hit = x.p; db.ledger.push({ id: 'alert-' + a.id, uid: a.uid, ticker: s.ticker, kind: 'alert', op: a.op, target: a.price, price: x.p, qty: 0, amount: 0, t: x.t }); }
     }
   }
-  function haltLateFilers() { for (const t in db.stocks) if (!db.stocks[t].halt && (E.filingStatus(db.stocks[t], Date.now()) || {}).delinquent) act(t, s => { E.haltIfLate(s, Date.now()); }); }
+  function haltLateFilers() { // and two missed reports in a row: the creator must buy back every share
+    for (const t in db.stocks) {
+      const f = E.filingStatus(db.stocks[t], Date.now()) || {};
+      if (f.missed) act(t, s => { E.buyBackIfMissed(s, Date.now()); });
+      else if (!db.stocks[t].halt && f.delinquent) act(t, s => { E.haltIfLate(s, Date.now()); });
+    }
+  }
 
   // Prices keep moving while the tab is open: every 5–15 s the simulated outside investors (E.PUBLIC, the accounts the
   // seed's price history uses) send a small market order. It goes through the normal matching engine, so it trades with
@@ -460,6 +466,17 @@
       const reason = text(body.reason, 120, 'why the company is closing');
       return act(t, x => E.closeCompany(x, reason, Date.now()), idemOf(u, body, 'close', ['ticker', 'reason']));
     },
+    'POST /api/buyback': ({ u, body }) => {
+      signedIn(u);
+      const t = tickerOf(body.ticker), s = db.stocks[t];
+      if (s && !(u.owner || s.creatorId === u.id)) fail(403, 'Only the creator or the exchange can buy back a company’s shares.');
+      return act(t, x => {
+        const paid = E.buyBack(x, x.creatorId, 'the creator used the charter’s buyback right', Date.now());
+        const free = x.creatorId ? E.account(Object.values(db.stocks).map(y => y.ticker === t ? x : y), x.creatorId).free : 0;
+        if (free < -0.005) fail(400, `Buying back every share costs ${E.money(paid)}. After the business’s cash, that’s ${E.money(-free)} more than the creator has free.`);
+        return paid;
+      }, idemOf(u, body, 'buyback', ['ticker']));
+    },
     'POST /api/halt': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => E.setHalt(s, body.reason ? String(body.reason).slice(0, 120) : null, Date.now())); },
   };
 
@@ -472,6 +489,7 @@
       db = { v: 1, stocks: m.stocks, execs: m.execs, users: {}, uid: null, ledger: [], alerts: [], waitlist: [] };
       save();
     }
+    for (const [t, s] of Object.entries(db.stocks)) if (!s.daily) for (const x of db.execs[t] || []) E.tally(s, x.t, x.q, E.r2(x.q * x.p)); // trading by day for the buyback price, as on the server
     haltLateFilers(); setInterval(haltLateFilers, 3600e3); // the charter's late-filing rule, as on the server
     simLoop();
   })();
