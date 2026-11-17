@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>More information · Creator Exchange (CX)</title>
+<meta name="description" content="CX is a stock market for creators. Fans buy shares in a creator's business and get a cut of their revenue every quarter. Creators can buy their shares back anytime.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Same look as the CX site and the CX PDFs: pure black, Libre Caslon headlines, Inter text, mono labels, hairlines. */
+:root{--bg:#000;--panel:#0c0c0e;--line:#232327;--rule:#3a3a40;--fg:#ededef;--muted:#a0a0a8;--dim:#6e6e76;
+  --serif:"Libre Caslon Text",Georgia,"Times New Roman",serif;--sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--fg);text-decoration:underline;text-decoration-color:#55555c;text-underline-offset:3px}
+a:hover{text-decoration-color:var(--fg)}
+:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+header{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:14px}
+.mark{font:700 17px var(--serif);text-decoration:none;display:flex;align-items:center;gap:10px}
+.mark span{font:500 9px var(--sans);letter-spacing:.34em;color:var(--muted)}
+nav{display:flex;gap:22px;flex-wrap:wrap} nav a{font-size:14px;color:var(--muted);text-decoration:none} nav a:hover{color:var(--fg)}
+.eyebrow{font:500 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+h1{font:400 clamp(40px,7vw,76px)/1.04 var(--serif);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h2{font:400 clamp(28px,4vw,40px)/1.12 var(--serif);margin:0 0 18px;text-wrap:balance}
+h3{font:600 16px var(--sans);margin:0 0 6px}
+p{margin:0 0 12px;max-width:68ch} .muted{color:var(--muted)}
+section{padding-block:72px;border-top:1px solid var(--line)}
+.hero{padding-block:96px 72px;border-top:0}
+.hero .lede{font-size:clamp(17px,2vw,20px);color:var(--muted);margin-top:20px;max-width:52ch}
+.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{display:inline-flex;align-items:center;gap:14px;border:1px solid #e8e8ea;border-radius:4px;padding:12px 18px;text-decoration:none;font-weight:600;font-size:15px}
+.btn span{font:400 13px var(--mono);color:var(--muted)}
+.btn.solid{background:var(--fg);color:#000} .btn.solid span{color:#333}
+.inshort{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:22px 24px;margin-top:44px}
+.inshort ol{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.inshort li{display:grid;grid-template-columns:28px 1fr;font-size:17px}
+.inshort i{font:400 16px var(--serif);font-style:normal;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:8px 0 14px}
+.stat{padding:22px 18px 18px 0;min-width:0} .stat+.stat{border-left:1px solid var(--line);padding-left:22px}
+.stat b{display:block;font:400 clamp(32px,5vw,48px)/1 var(--serif);margin-bottom:8px}
+.stat span{font-size:14px;color:var(--muted);display:block}
+.src{font:400 12px var(--mono);color:var(--dim)} .src a{color:var(--muted)}
+ol.steps{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+ol.steps li{display:grid;grid-template-columns:52px 1fr;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}
+ol.steps i{font:400 26px/1 var(--serif);font-style:normal;color:var(--muted)} ol.steps b{font-weight:600}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:560px}
+th{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 16px 10px 0;border-bottom:1px solid var(--rule)}
+td{padding:12px 16px 12px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--mono);font-size:14px;padding-right:0}
+tr.hl td{color:#fff;font-weight:600} tr.hl td:first-child{font-family:var(--serif);font-weight:700}
+.callout{border:1px solid var(--line);background:var(--panel);padding:18px 22px;margin-top:18px;border-radius:4px}
+.callout b{font:400 22px var(--serif)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.card{border:1px solid var(--line);background:var(--panel);padding:22px 24px;border-radius:4px;min-width:0}
+.card ul{margin:0;padding-left:18px} .card li{margin:0 0 6px}
+.lab{font:500 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.card h3+.lab{margin-top:8px}
+.year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--rule);margin-top:12px}
+.year div{padding:16px 18px 0 0;position:relative;min-width:0} .year div+div{padding-left:18px;border-left:1px solid var(--line)}
+.year div::before{content:"";position:absolute;top:-5px;left:0;width:9px;height:9px;border-radius:50%;background:var(--fg)} .year div+div::before{left:-5px}
+.year em{display:block;font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-style:normal;margin-bottom:6px}
+.year p{font-size:15px}
+.contact{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:8px}
+.email{font:500 15px var(--mono);word-break:break-all}
+footer{border-top:1px solid var(--line);padding-block:28px 40px;font:400 12px var(--mono);color:var(--dim)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:760px){
+  nav{display:none}
+  .stats{grid-template-columns:1fr} .stat+.stat{border-left:0;border-top:1px solid var(--line);padding-left:0}
+  .cols,.contact{grid-template-columns:1fr}
+  .year{grid-template-columns:1fr 1fr;row-gap:18px} .year div:nth-child(3){padding-left:0;border-left:0} .year div:nth-child(3)::before{left:0}
+  section{padding-block:56px} .hero{padding-block:64px 56px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.stock td:first-child{color:var(--muted)} .stock td:nth-child(2){font-weight:500}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="mark" href="index.html" aria-label="Creator Exchange home">CX<span>CREATOR EXCHANGE</span></a>
+  <nav aria-label="Sections"><a href="index.html">Home</a><a href="markets.html">CX Markets</a><a href="#how">How it works</a><a href="#compare">Compare</a><a href="CX-Deck.pdf">Deck</a></nav>
+</div></header>
+<main id="top">
+<section class="hero"><div class="wrap">
+  <p class="eyebrow">More information · Creator Exchange</p>
+  <h1>The stock market for creators.</h1>
+  <p class="lede">Fans buy shares in a creator's business and get a cut of their revenue every quarter. Creators keep control and can buy their shares back anytime.</p>
+  <div class="btns">
+    <a class="btn solid" href="markets.html">Try CX Markets <span>play money</span></a>
+    <a class="btn" href="CX-Deck.pdf">Read the deck <span>PDF</span></a>
+    <a class="btn" href="CX-Overview.pdf">5-page overview <span>PDF</span></a>
+  </div>
+  <div class="inshort">
+    <p class="eyebrow">In short</p>
+    <ol>
+      <li><i>1</i><span>A creator lists their business and sells shares to fans in an IPO.</span></li>
+      <li><i>2</i><span>Every quarter, each share pays a cut of the creator's revenue from every platform, sponsors and merch.</span></li>
+      <li><i>3</i><span>There's no end date. After the 12-month legal hold, fans can sell their shares to other fans.</span></li>
+      <li><i>4</i><span>The creator can buy shares back anytime at the market price plus 10%.</span></li>
+      <li><i>5</i><span>Raises run through an SEC-registered portal. Today CX is a play-money demo you can try.</span></li>
+    </ol>
+  </div>
+</div></section>
+
+<section id="problem"><div class="wrap">
+  <p class="eyebrow">The problem</p>
+  <h2>Creators run businesses that can't raise money.</h2>
+  <div class="stats">
+    <div class="stat"><b>$250B</b><span>creator economy in 2023, heading toward $480B by 2027</span></div>
+    <div class="stat"><b>4%</b><span>of creators earn more than $100,000 a year</span></div>
+    <div class="stat"><b>46%</b><span>of full-time creators earned under $1,000 in 2022</span></div>
+  </div>
+  <p class="src"><a href="https://www.goldmansachs.com/insights/articles/the-creator-economy-could-approach-half-a-trillion-dollars-by-2027">Goldman Sachs Research, 2023</a> · <a href="https://techcrunch.com/2022/04/20/linktree-creator-economy-report-research/">Linktree survey via TechCrunch, 2022</a></p>
+  <p style="margin-top:20px">Banks don't lend against views. So a creator who wants to grow pays for it themselves or gives a studio part of the rights. Fans already spend on memberships, merch and crowdfunding, but they get rewards, never a return.</p>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <p class="eyebrow">How it works</p>
+  <h2>Shares in a creator, paid out every quarter.</h2>
+  <ol class="steps">
+    <li><i>1</i><div><b>The creator lists their business.</b> They choose what cut of revenue to share, for example 3%, and how many shares to sell.</div></li>
+    <li><i>2</i><div><b>Fans buy shares at the IPO</b> through an SEC-registered crowdfunding portal. The money goes to the creator.</div></li>
+    <li><i>3</i><div><b>Every quarter, the creator reports revenue</b> and a payment agent pays shareholders their cut first.</div></li>
+    <li><i>4</i><div><b>After the 12-month legal hold, shares trade on CX</b> through a registered partner, so prices move as the creator grows.</div></li>
+    <li><i>5</i><div><b>The creator can buy shares back anytime</b> at the market price plus 10%.</div></li>
+  </ol>
+  <h3 style="margin-top:40px">It works like a company's stock</h3>
+  <div class="tw"><table class="stock">
+    <tr><th>Public company</th><th>Creator on CX</th></tr>
+    <tr><td>Sells shares in an IPO</td><td>Sells shares in an IPO through a registered portal</td></tr>
+    <tr><td>Pays dividends</td><td>Pays a cut of revenue every quarter</td></tr>
+    <tr><td>Shares trade on an exchange</td><td>Shares trade on CX after the 12-month hold</td></tr>
+    <tr><td>Buys back its stock</td><td>Buys back shares at the market price plus 10%</td></tr>
+    <tr><td>Reports earnings every quarter</td><td>Reports revenue every quarter</td></tr>
+  </table></div>
+  <h3 style="margin-top:40px">An example: 3% of revenue for $100,000</h3>
+  <div class="tw"><table>
+    <tr><th>Line</th><th class="n">Amount</th></tr>
+    <tr><td>The creator earns</td><td class="n">$40,000 a month</td></tr>
+    <tr><td>The creator receives up front</td><td class="n">$100,000 (about $92,100 after a 7.9% portal fee)</td></tr>
+    <tr><td>Paid to shareholders each quarter at today's revenue</td><td class="n">$3,600</td></tr>
+    <tr><td>Paid to shareholders each year</td><td class="n">$14,400, about 14% of what they paid</td></tr>
+    <tr><td>If revenue doubles</td><td class="n">$28,800 a year</td></tr>
+    <tr><td>To buy all shares back if they trade at $110,000</td><td class="n">$121,000</td></tr>
+  </table></div>
+  <div class="callout"><b>Fans earn more as the creator grows.</b><p class="muted" style="margin:6px 0 0">The creator can end it anytime by buying the shares back. If revenue drops, payouts drop too.</p></div>
+</div></section>
+
+<section id="sides"><div class="wrap">
+  <p class="eyebrow">Creators and fans</p>
+  <h2>Both sides know the deal up front.</h2>
+  <div class="cols">
+    <div class="card"><h3>Creators</h3>
+      <p class="lab">Get</p><ul><li>Money up front without selling the company or creative control</li><li>Fans with a stake who want the channel to grow</li><li>The right to buy shares back anytime</li></ul>
+      <p class="lab">Give</p><ul><li>A cut of revenue every quarter until they buy the shares back</li><li>A short quarterly revenue report</li></ul></div>
+    <div class="card"><h3>Fans</h3>
+      <p class="lab">Get</p><ul><li>A cut of a creator's revenue every quarter, growing as the creator grows</li><li>Shares they can sell after 12 months, or sell back at the market price plus 10%</li></ul>
+      <p class="lab">Risk</p><ul><li>Payouts drop if revenue drops, and they can lose money</li><li>No selling for the first 12 months</li></ul></div>
+  </div>
+</div></section>
+
+<section id="compare"><div class="wrap">
+  <p class="eyebrow">How CX compares</p>
+  <h2>Shares in the whole business, with a way out for creators.</h2>
+  <div class="tw"><table>
+    <tr><th>Option</th><th>What fans get</th><th>How it ends</th><th>Who it's for</th></tr>
+    <tr class="hl"><td>CX</td><td>A cut of the creator's whole revenue</td><td>Creator buys back, or fans sell</td><td>Any creator</td></tr>
+    <tr><td><a href="https://gigastar.io">GigaStar</a></td><td>A cut of a channel's YouTube revenue</td><td>No end date</td><td>YouTube channels</td></tr>
+    <tr><td>Kickstarter, Patreon</td><td>Rewards or access</td><td>No return</td><td>Anyone</td></tr>
+    <tr><td><a href="https://techcrunch.com/2022/02/16/spotter-invest-youtubers-back-catalog/">Spotter</a></td><td>Nothing, Spotter pays for back-catalog ad revenue</td><td>At an agreed return</td><td>Large YouTube channels</td></tr>
+    <tr><td><a href="https://www.adweek.com/dealroom/slow-ventures-invests-creators/">Slow Creator Fund</a></td><td>Nothing, it writes $1–3M checks</td><td>Equity</td><td>Top creators</td></tr>
+  </table></div>
+  <div class="cols" style="margin-top:36px">
+    <div><p class="eyebrow">The legal path</p><p>Every raise runs through an SEC-registered Regulation Crowdfunding portal, which handles investor checks, limits and escrow. Shares are revenue shares, set up so fans shouldn't get partnership tax forms, which a lawyer will confirm. Shares can't be resold for 12 months. After that, trading runs through a registered partner.</p></div>
+    <div><p class="eyebrow">What's built</p><p>A full play-money exchange. It has an order book, IPO auctions, quarterly filings and payouts, a brokerage-style account opening with a risk quiz, and automated tests that click through every trade. <a href="markets.html">Try it.</a></p></div>
+  </div>
+</div></section>
+
+<section id="plan"><div class="wrap">
+  <p class="eyebrow">Year one</p>
+  <h2>From first interview to first payout.</h2>
+  <div class="year">
+    <div><em>Dec – Feb</em><p>Interview at least 30 creators. Get a lawyer's review of the revenue shares.</p></div>
+    <div><em>Mar – May</em><p>Run one pilot IPO by hand, up to $124K, with a creator who already raises from fans.</p></div>
+    <div><em>Jun – Aug</em><p>The first quarterly payout goes out.</p></div>
+    <div><em>Sep – Nov</em><p>Run two or three more IPOs and line up a registered trading partner for month 12.</p></div>
+  </div>
+</div></section>
+
+<section id="team"><div class="wrap">
+  <p class="eyebrow">Team</p>
+  <h2>Built by a creator who trades.</h2>
+  <div class="cols">
+    <div><h3>Julian Jung · Cofounder</h3><p class="muted">UC Berkeley Haas, Global Management Program. Julian built the CX exchange. He does front-end development for Privy, the Stripe-owned crypto wallet company, through Blockchain at Berkeley, and consults with Lambda Strategy Consulting, most recently for Coca-Cola. He works on growth and operations at Flip Text and is VP of Redline, Berkeley's car club.</p></div>
+    <div><h3>Seth William Thomas · Cofounder</h3><p class="muted">UC Berkeley.</p></div>
+  </div>
+</div></section>
+
+<section id="contact"><div class="wrap">
+  <p class="eyebrow">Get in touch</p>
+  <h2>We're talking to creators, mentors and investors now.</h2>
+  <div class="contact">
+    <div class="card"><h3>Creators</h3><p class="muted">Thinking about selling shares in your business? We'll walk you through it in 10 minutes.</p></div>
+    <div class="card"><h3>Mentors</h3><p class="muted">Know securities law, crowdfunding or the creator business? We'd value 20 minutes of advice.</p></div>
+    <div class="card"><h3>Investors</h3><p class="muted">We'd love your feedback on the model before we raise.</p></div>
+  </div>
+  <p style="margin-top:24px">Email Julian at <a class="email" href="mailto:thejungjulian@gmail.com">thejungjulian@gmail.com</a></p>
+</div></section>
+</main>
+<footer><div class="wrap">
+  <span>Creator Exchange · UC Berkeley Haas · 2026</span>
+  <span>CX is a play-money preview. It isn't a registered exchange, broker-dealer or funding portal, and nothing here is an offer to sell any security.</span>
+</div></footer>
+</body>
+</html>
