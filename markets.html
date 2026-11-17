@@ -167,9 +167,15 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog h2{margin:0 0 8px;font:400 24px/1.2 "Libre Caslon Text",Georgia,"Times New Roman",serif}
 dialog ol{padding-left:20px;display:flex;flex-direction:column;gap:8px;margin:12px 0 16px}
 .err{color:var(--down);font-size:12.5px;margin:0}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 32px));background:var(--raise);border:1px solid var(--line-2);color:var(--ink);padding:10px 14px;border-radius:6px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:5}
-#toast.on{opacity:1}
-#toast.bad{border-color:var(--down);color:#ffb4b2}
+.altabs{display:flex;margin:4px 12px 6px}
+.altab td{white-space:nowrap}
+.fld input[aria-invalid="true"]{border-color:var(--down)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:max-content;max-width:min(560px,calc(100% - 32px));display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;z-index:5}
+.tst{background:var(--raise);border:1px solid var(--line-2);color:var(--ink);padding:10px 14px;border-radius:6px;opacity:0;transition:opacity .2s}
+.tst.on{opacity:1}
+.tst.bad{border-color:var(--down);color:#ffb4b2}
+.tst[data-t]{pointer-events:auto;cursor:pointer}
+.tst[data-t]:hover{border-color:var(--muted)}
 .setgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px;align-items:start;max-width:1100px}
 .setgrid .card h2{margin:0}
 .setgrid .card{background:var(--bg)}
@@ -219,6 +225,7 @@ fieldset.qz{border:0;padding:0;margin:14px 0 0;min-width:0} .qz legend{font-weig
 #auth h2{padding-right:32px}
 #auth .go{margin-top:6px;padding:11px 12px}
 .au-alt{text-align:center;margin-top:4px}
+.au-forgot{text-align:right;margin:-4px 0 0}
 .otp{font:500 22px/1 var(--mono)!important;letter-spacing:.42em;text-align:center;padding:12px 8px!important}
 .otp::placeholder{color:var(--line-2)}
 /* tap buttons for one-answer questions */
@@ -246,14 +253,14 @@ details.more{margin-top:10px} details.more summary{cursor:pointer;color:var(--li
 .tour-card h3{margin:0 0 6px;font:400 19px/1.2 "Libre Caslon Text",Georgia,"Times New Roman",serif} .tour-card p{margin:0 0 12px;color:var(--ink-2)}
 .tour-card .row{display:flex;gap:8px;align-items:center} .tour-card .row .muted{margin-right:auto}
 @media (prefers-reduced-motion:reduce){.tour-hole{transition:none}}
-@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+@media (prefers-reduced-motion:reduce){.tst{transition:none}}
 #sc-rows td:nth-child(-n+2){white-space:nowrap} /* screener names and niches stay on one line */
 /* Laid out like the trading screens people already know, dressed like the landing page: black, panels drawn like its
    live-market board (a slightly lifted black, a hairline, square-ish corners), white for whatever is active, light
    weights, small spaced capitals for section labels; green buy / red sell, every figure in the same tabular sans. */
 body{-webkit-font-smoothing:antialiased}
 .chartwrap,.bottom,.page,.tvtools,.rpanel,.rbar,.tvrange{border:1px solid var(--line);border-radius:3px}
-.card,.tile,.scwrap,.ipoitem,.choice,.pick,dialog,#toast,.tour-card,.vtip{border-radius:3px}
+.card,.tile,.scwrap,.ipoitem,.choice,.pick,dialog,.tst,.tour-card,.vtip{border-radius:3px}
 .prod a,.tb,.pcts button,.ghost,.go,.fld input,.fld select,.fld textarea,.alrow input,.symsel,.sides,.sides button,.steps li,.code{border-radius:2px}
 .prod a,.tb,.btabs button,.seg label{font-weight:500}
 .prod a,.tb{color:var(--muted)}                       /* so the active one (white) stands out */
@@ -445,14 +452,18 @@ body{-webkit-font-smoothing:antialiased}
   #ind-btn,#alert-btn{font-size:0} #ind-btn .fx{font-size:14px;margin:0} #alert-btn svg{margin:0}
   .feed span{display:none} .topbar .sep{margin:0 2px}
 }
-@media (max-width:1100px){ .rpanel{width:256px} #full-btn,#snap-btn{display:none} }
+#menu .narrow-only{display:none}
+@media (max-width:1100px){ .rpanel{width:256px} #full-btn,#snap-btn{display:none} #menu .narrow-only{display:flex} } /* the two buttons move into the ☰ menu */
 @media (max-height:640px) and (min-width:901px){ .body:not(.bmax){--bh:120px} } /* short windows keep most of the height for the chart */
 @media (max-width:900px){ /* small screens: one column, the panels under the chart */
   .app{height:auto;min-height:100%}
   .topbar{overflow-x:auto}
-  .body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"chart" "range" "rbar" "rpanel" "bottom"}
+  .body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"tools" "chart" "range" "rbar" "rpanel" "bottom"}
   .body.paged{grid-template-rows:auto;grid-template-areas:"rbar" "rpanel" "page"}
-  .tvtools{display:none}
+  .tvtools.tv-tb{flex-direction:row;width:auto;padding:2px 4px;overflow-x:auto;overflow-y:hidden} /* the drawing tools become a strip above the chart */
+  .tvtools.tv-tb>*{flex:none}
+  .tvtools .tv-vsep{width:1px;height:22px;margin:0 4px}
+  .tvtools .tv-more{opacity:.6} /* no hover on touch screens: the corner that opens each group's list stays visible */
   .chartwrap{height:min(62vh,460px)}
   .tvrange{height:30px}
   .rbar{flex-direction:row;justify-content:flex-start;padding:4px 6px;overflow-x:auto}
@@ -512,6 +523,8 @@ body{-webkit-font-smoothing:antialiased}
     <hr>
     <label class="mtog" role="menuitemcheckbox"><input type="checkbox" id="demo-tog"> Show demo creators</label>
     <button role="menuitem" data-keys>Keyboard shortcuts</button>
+    <button role="menuitem" class="narrow-only" data-menu-snap>Chart snapshot</button>
+    <button role="menuitem" class="narrow-only" data-menu-full>Fullscreen</button>
     <hr>
         <a role="menuitem" href="./">CX home</a>
     <hr class="need-user">
@@ -587,7 +600,7 @@ body{-webkit-font-smoothing:antialiased}
         <div class="wh"><span>Alerts</span><button type="button" class="ic" id="al-new" title="Create alert (Alt+A)" aria-label="Create alert"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
         <div class="wscroll">
         <div class="sec" id="alerts-box"><p class="hint" id="al-hint"></p>
-        <form id="alert-form" class="alrow" novalidate><label for="al-price" hidden>Alert price</label><input id="al-price" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Price"><button class="ghost" type="submit">Add alert</button></form>
+        <form id="alert-form" class="alrow" novalidate><label for="al-price" hidden>Alert price</label><input id="al-price" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Price"><button class="ghost" type="submit">Add alert</button><button class="linkish" type="button" id="al-cancel" hidden>Cancel</button></form>
         <ul class="alist" id="al-list" hidden></ul><span id="al-count" hidden></span></div>
         <div id="b-alerts"></div></div>
       </section>
@@ -617,6 +630,7 @@ body{-webkit-font-smoothing:antialiased}
             <div class="fld"><label for="t-qty">Shares</label><input id="t-qty" type="number" min="1" step="1" value="10" inputmode="numeric"></div>
             <div class="fld"><label for="t-price">Limit price</label><input id="t-price" type="number" min="0.01" step="0.01" inputmode="decimal"></div>
           </div>
+          <p class="err" id="t-err" aria-live="polite" hidden></p>
           <div class="pcts" id="t-pcts" aria-label="Order size">
             <button type="button" data-pct=".25">25%</button><button type="button" data-pct=".5">50%</button><button type="button" data-pct=".75">75%</button><button type="button" data-pct="1">Max</button>
           </div>
@@ -821,11 +835,28 @@ body{-webkit-font-smoothing:antialiased}
     <div class="fld" id="au-email-row" hidden><label for="au-email">Email</label><input id="au-email" type="email" autocomplete="email" maxlength="120"></div>
     <div class="fld" id="au-name-row"><label for="au-name" id="au-name-l">Username</label><input id="au-name" autocomplete="username" maxlength="120"></div>
     <div class="fld"><label for="au-pw">Password</label><div class="pwrow"><input id="au-pw" type="password" autocomplete="current-password" minlength="8"><button type="button" class="linkish" id="au-show" aria-pressed="false">Show</button></div></div>
+    <p class="hint au-forgot" id="au-forgot-row"><button type="button" class="linkish" id="au-forgot">Forgot password?</button></p>
     <p class="hint" id="au-terms">Play money only. <a href="legal.html" target="_blank">Terms, privacy and risks</a>.</p>
     <p class="hint">Demo: runs in your browser with play money. Nothing you enter is sent anywhere.</p>
     <p class="err" id="au-err" hidden></p>
     <button class="go" id="au-go" type="submit" value="go">Sign in</button>
     <p class="hint au-alt"><span id="au-alt-t">New here?</span> <button class="linkish" id="au-switch" type="button">Create an account</button></p>
+  </form>
+</dialog>
+
+<dialog id="reset">
+  <form class="ticket" id="rs-form" novalidate>
+    <button type="button" class="x dx" data-close aria-label="Close">×</button>
+    <h2>Reset your password</h2>
+    <p class="hint" id="rs-sub"></p>
+    <div class="fld"><label for="rs-name">Username or email</label><input id="rs-name" autocomplete="username" maxlength="120"></div>
+    <div id="rs-step2" hidden>
+      <div class="fld"><label for="rs-code">6-digit code</label><input id="rs-code" class="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></div>
+      <div class="fld"><label for="rs-pw">New password</label><input id="rs-pw" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters"></div>
+    </div>
+    <p class="err" id="rs-err" role="alert" hidden></p>
+    <button class="go" id="rs-go" type="submit">Send code</button>
+    <p class="hint au-alt"><span id="rs-resend-w" hidden><button class="linkish" type="button" id="rs-resend">Send a new code</button> · </span><button class="linkish" type="button" id="rs-back">Back to sign in</button></p>
   </form>
 </dialog>
 
@@ -841,7 +872,22 @@ body{-webkit-font-smoothing:antialiased}
     <h2 id="cf-title"></h2>
     <div class="osum" id="cf-body"></div>
     <label class="hint" style="display:flex;gap:8px"><input type="checkbox" id="cf-skip"> Don't ask again (you can turn this back on in Settings)</label>
-    <div class="obnav"><button class="ghost" value="no">Cancel</button><button class="ghost" value="limit" id="cf-limit" hidden>Use a limit order instead</button><button class="go" value="yes" id="cf-go" autofocus>Place order</button></div>
+    <div class="obnav"><button class="ghost" value="no" id="cf-no">Cancel</button><button class="ghost" value="limit" id="cf-limit" hidden>Use a limit order instead</button><button class="go" value="yes" id="cf-go" autofocus>Place order</button></div>
+  </form>
+</dialog>
+
+<dialog id="modify">
+  <form class="ticket" id="mod-form" novalidate>
+    <button type="button" class="x dx" data-close aria-label="Close">×</button>
+    <h2 id="mod-title">Modify order</h2>
+    <p class="hint" id="mod-sub"></p>
+    <div class="f2">
+      <div class="fld"><label for="mod-qty">Shares still to fill</label><input id="mod-qty" type="number" min="1" step="1" inputmode="numeric"></div>
+      <div class="fld"><label for="mod-price">Limit price</label><input id="mod-price" type="number" min="0.01" step="0.01" inputmode="decimal"></div>
+    </div>
+    <p class="hint" id="mod-note"></p>
+    <p class="err" id="mod-err" role="alert" hidden></p>
+    <div class="obnav"><button class="ghost" type="button" data-close>Cancel</button><button class="go" id="mod-go" type="submit">Save changes</button></div>
   </form>
 </dialog>
 
@@ -936,8 +982,22 @@ function walk(s, sd, q, limit) {
   return { filled: Math.max(0, q) - left, cost, levels: lv.size, self: opp.some(o => o.mine) };
 }
 
-let toastTimer;
-function toast(msg, bad) { const el = $('#toast'); el.textContent = msg; el.className = 'on' + (bad ? ' bad' : ''); clearTimeout(toastTimer); toastTimer = setTimeout(() => (el.className = ''), 4500); }
+// pop-ups stack at the bottom, newest last, so a burst of fills or alerts shows every one; the same text again restarts its timer.
+// `t` makes it clickable: it opens that creator's chart.
+function toast(msg, bad, t) {
+  const box = $('#toast');
+  let el = [...box.children].find(x => x.textContent === msg && !x.dataset.gone);
+  if (!el) {
+    el = Object.assign(document.createElement('div'), { className: 'tst', textContent: msg });
+    box.append(el); requestAnimationFrame(() => el.classList.add('on'));
+    while (box.children.length > 4) box.firstElementChild.remove();
+  }
+  el.classList.toggle('bad', !!bad);
+  if (t) { el.dataset.t = t; el.title = `Open ${t}`; }
+  clearTimeout(el.timer);
+  el.timer = setTimeout(() => { el.dataset.gone = 1; el.classList.remove('on'); setTimeout(() => el.remove(), 250); }, bad ? 6500 : 4500);
+}
+$('#toast').addEventListener('click', e => { const el = e.target.closest('.tst[data-t]'); if (el) { el.remove(); pickSymbol(el.dataset.t); } });
 
 async function api(path, body) {
   const opts = body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CX': '1' }, body: JSON.stringify(body) };
@@ -962,7 +1022,7 @@ async function refresh() {
   synced = Date.now(); if ($('#feed').dataset.s === 'live') feed('live'); // refreshes the "last update" time
   stocks = st.stocks.filter(s => showDemo || s.creatorId); meU = st.me; me = meU && meU.id; owner = !!(meU && meU.owner); canTrade = !!meU;
   if (!bySym(sel) || !['open', 'preopen'].includes(bySym(sel).status)) { sel = (listed()[0] || {}).ticker || null; queueMicrotask(prefill); }
-  if (meU && lastUnread !== null && meU.unread > lastUnread) notifyNewest();
+  if (meU && lastUnread !== null && meU.unread > lastUnread) notifyNew(meU.unread - lastUnread);
   lastUnread = meU ? meU.unread : null;
   applyPrefs();
   if (meU && (!meU.approved || !meU.onboarded) && !obAsked) { obAsked = true; openOnboarding(); }
@@ -975,8 +1035,8 @@ async function loadHistory(t) {
   const h = hist[t] ||= { rows: [], loaded: false, busy: false }, s = bySym(t);
   if (!s || h.busy || (h.loaded && (h.rows.length ? h.rows[h.rows.length - 1][0] : 0) >= s.lastId)) return;
   h.busy = true;
-  try { h.rows = h.rows.concat((await api(`/api/history?ticker=${t}&after=${h.rows.length ? h.rows[h.rows.length - 1][0] : 0}`)).rows); h.loaded = true; }
-  catch { return; } finally { h.busy = false; }
+  try { h.rows = h.rows.concat((await api(`/api/history?ticker=${t}&after=${h.rows.length ? h.rows[h.rows.length - 1][0] : 0}`)).rows); h.loaded = true; h.err = false; }
+  catch { h.err = true; if (t === sel && view === 'trade') drawChart(); return; } finally { h.busy = false; } // the bars already drawn stay; an empty chart offers a retry
   if (t !== sel) return;
   if (view === 'trade') { drawChart(); if (bTab === 'filings') renderFilings(s); }
   if (panel === 'watch') renderStats(); // the performance strip needs the history
@@ -984,7 +1044,15 @@ async function loadHistory(t) {
 }
 const NOTIFY = { buy: 'trades', sell: 'trades', payout: 'payouts', closing: 'payouts', ipo: 'ipos', withdrawn: 'ipos', alert: 'alerts' }; // activity kind -> setting that controls its pop-up
 let sentAt = 0; // when this tab last sent an order: its own fills are already reported by the order's result, so don't repeat them
-async function notifyNewest() { const a = await api('/api/activity').catch(() => null), e = a && a.entries[0]; if (e && meU.prefs.notify[NOTIFY[e.kind]] !== false && !(NOTIFY[e.kind] === 'trades' && Date.now() - sentAt < 4000)) toast(describe(e)); }
+const notified = new Set();
+// the n newest activity entries are the new ones: each gets its own pop-up, oldest first; a big burst is summed up after the first two
+async function notifyNew(n) {
+  const a = await api('/api/activity').catch(() => null); if (!a) return;
+  const own = Date.now() - sentAt < 4000;
+  const fresh = a.entries.filter(e => NOTIFY[e.kind]).slice(0, n).reverse().filter(e => !notified.has(e.id) && notified.add(e.id) && meU.prefs.notify[NOTIFY[e.kind]] !== false && !(own && NOTIFY[e.kind] === 'trades'));
+  fresh.slice(0, fresh.length > 3 ? 2 : 3).forEach(e => toast(describe(e), false, e.ticker));
+  if (fresh.length > 3) toast(`${fresh.length - 2} more updates. See them under the bell.`);
+}
 let pending = null;
 const scheduleRefresh = () => { clearTimeout(pending); pending = setTimeout(() => refresh().catch(() => {}), 120); };
 // The live feed: the server pushes a message on every change. The browser reconnects by itself after a drop, and a
@@ -1008,6 +1076,9 @@ const describe = e => ({
   closing: `${e.ticker} closed: ${money(e.price)} a share paid out on ${num(e.qty)} shares, which are now cancelled`,
   withdrawn: `${e.ticker} IPO was withdrawn. Your bid was released.`,
   alert: `Price alert: ${e.ticker} traded at ${money(e.price)}, ${e.op} your ${money(e.target)}`,
+  placed: `Placed: ${e.side} ${num(e.qty)} ${e.ticker} ${e.market ? 'at market' : 'at ' + money(e.price)}`,
+  cancelled: `${num(e.qty)} ${e.ticker} ${e.why === 'reduced' ? 'taken off the order (made smaller)' : e.why === 'modified' ? 'moved to a new order' : e.why === 'market' ? 'not filled: a market order’s rest is cancelled' : e.why === 'closed' ? 'cancelled: the company closed' : 'cancelled'}`,
+  rejected: `Refused: ${e.side} ${num(e.qty)} ${e.ticker}. ${e.reason}`,
 }[e.kind] || e.kind);
 
 /* ---------- chart ---------- */
@@ -1059,6 +1130,7 @@ const ch = createChart($('#chart-host'), {
     contextMenuItems: ({ price }) => chartMenu(price),
     onOrderMove: (id, p) => moveOrder(id, p),
     onOrderCancel: id => cancelOrder(id),
+    onOrderClick: id => openModify(sel, id),
     onChange: () => { if (panel === 'objects') renderObjects(); drawChart(); },
     onTypeChange: () => renderToolbar(),
   },
@@ -1070,7 +1142,7 @@ bs.innerHTML = '<button type="button" data-bs="sell" title="Sell (Shift+S)"><sma
 ch.legendSlot.append(bs);
 bs.addEventListener('click', e => { const b = e.target.closest('[data-bs]'); if (b) openOrder(b.dataset.bs); });
 // The chart shows one listing: bars from its trades, plus the model value, your alerts, your open orders and your position.
-let shown = { t: null, tf: null };
+let shown = { t: null, tf: null }, pendingMove = null; // pendingMove: an order line dragged to a new price, waiting for Confirm
 function drawChart() {
   const s = bySym(sel), msg = $('#chartmsg');
   bs.hidden = !s || (ch.settings && ch.settings.showBuySell === false);
@@ -1083,14 +1155,15 @@ function drawChart() {
   if (s.ticker !== shown.t || chart.tf !== shown.tf) { ch.setSymbol({ id: s.ticker, title: s.name, interval: ivalOf(chart.tf)[1], source: s.sim ? 'CX · demo' : 'CX' }); ch.setInterval(chart.tf); shown = { t: s.ticker, tf: chart.tf }; }
   const cs = candles(s, chart.tf);
   msg.hidden = cs.length > 0;
-  if (!cs.length) msg.innerHTML = `<b>${esc(s.ticker)} · ${esc(s.name)}</b><span>${s.status === 'preopen' ? `Opening auction pending. The IPO priced at ${money(s.ipoPrice)}; pre-open orders cross when trading opens.` : s.lastId && !(hist[s.ticker] || {}).loaded ? 'Loading the chart…' : 'No trades yet.'}</span>`;
+  const h = hist[s.ticker] || {};
+  if (!cs.length) msg.innerHTML = `<b>${esc(s.ticker)} · ${esc(s.name)}</b><span>${s.status === 'preopen' ? `Opening auction pending. The IPO priced at ${money(s.ipoPrice)}; pre-open orders cross when trading opens.` : s.lastId && !h.loaded ? (h.err ? 'Couldn’t load chart data.' : 'Loading the chart…') : 'No trades yet.'}</span>${s.lastId && !h.loaded && h.err ? '<button type="button" class="ghost" data-chart-retry>Try again</button>' : ''}`;
   ch.setData(cs);
-  const h = meU ? held(s) : 0;
+  const mine = meU ? held(s) : 0;
   ch.setOverlays({
     model: chart.model ? modelValue(s) : null,
     lines: myAlerts(s.ticker).filter(a => !a.fired).map(a => ({ id: a.id, price: a.price, label: `Alert ${a.op}`, color: css('--warn'), dash: [2, 4] })),
-    orders: s.orders.filter(o => o.mine).map(o => ({ id: o.id, price: o.price, qty: o.qty, side: o.side, label: s.status === 'preopen' ? 'PRE-OPEN' : 'LIMIT' })),
-    position: h && s.pos ? { qty: h, avg: s.pos.basis / h, pnl: h * s.last - s.pos.basis } : null,
+    orders: s.orders.filter(o => o.mine).map(o => ({ id: o.id, price: pendingMove && pendingMove.id === o.id ? pendingMove.price : o.price, qty: o.qty, side: o.side, label: s.status === 'preopen' ? 'PRE-OPEN' : 'LIMIT' })),
+    position: mine && s.pos ? { qty: mine, avg: s.pos.basis / mine, pnl: mine * s.last - s.pos.basis } : null,
     empty: null,
   });
   const bid = best(s, 'buy'), ask = best(s, 'sell');
@@ -1108,12 +1181,55 @@ function chartMenu(price) {
     { label: chart.model ? 'Hide the model value line' : 'Show the model value line', action: () => { chart.model = !chart.model; store('cx.model', chart.model); drawChart(); }, separatorBefore: true },
   ];
 }
-// dragging an order line moves the order in one step; if the new price is refused the line goes back to where the order still is
+// Dragging an order line moves the order in one step; if the new price is refused the line goes back to where the order still is.
+// With order reviews on (Settings), the line waits at the new price until Confirm; Discard puts it back and sends nothing.
 async function moveOrder(id, p) {
+  const s = bySym(sel), o = s && s.orders.find(x => x.id === id && x.mine); if (!o) return drawChart();
+  p = r2(p);
+  if (meU.prefs.confirm) {
+    pendingMove = { id, price: p }; drawChart();
+    const kv = (k, v) => `<div><span class="muted">${k}</span><span>${v}</span></div>`;
+    const ok = await ask(`Move your ${o.side} order?`, kv('Order', `${o.side === 'buy' ? 'Buy' : 'Sell'} ${num(o.qty)} ${esc(s.ticker)}`) + kv('Limit price', `${money(o.price)} → <b>${money(p)}</b>`)
+      + '<p class="hint">A new price puts the order at the back of the line at that price, as on any exchange. If it crosses the book, it fills now.</p>', 'Confirm', o.side === 'sell', 'Discard');
+    pendingMove = null;
+    if (!ok) return drawChart();
+  }
   const r = await run(() => api('/api/modify', { ticker: sel, id, price: p, rid: rid() }), `Order moved to ${money(p)}.`);
   if (r === undefined) drawChart();
 }
-const cancelOrder = id => run(() => api('/api/cancel', { ticker: sel, id, rid: rid() }), 'Order cancelled.');
+// Modify: the price and the shares still to fill of one resting order (Open orders → Modify, or click its label on the chart)
+let modOrder = null;
+function openModify(t, id) {
+  const s = bySym(t), o = s && s.orders.find(x => x.id === id && x.mine);
+  if (!o) return toast('That order already filled or is gone. See History.');
+  modOrder = { ...o, t };
+  $('#mod-title').textContent = `Modify: ${o.side === 'buy' ? 'buy' : 'sell'} ${t}`;
+  $('#mod-sub').textContent = o.q0 > o.qty ? `${num(o.q0 - o.qty)} of ${num(o.q0)} shares already filled. Changes apply to the rest.` : `${num(o.qty)} shares at ${money(o.price)}, none filled yet.`;
+  $('#mod-qty').value = o.qty; $('#mod-price').value = o.price.toFixed(2); $('#mod-err').hidden = true; modNote();
+  $('#modify').showModal(); $('#mod-qty').select();
+}
+function modNote() {
+  const o = modOrder, q = Number($('#mod-qty').value), p = r2(Number($('#mod-price').value));
+  $('#mod-note').textContent = p === o.price && q === o.qty ? 'Change the shares, the price, or both.' : p === o.price && q < o.qty ? 'Smaller at the same price, so it keeps its place in line.'
+    : 'A new price or more shares makes it a new order at the back of the line. If it crosses the book, it fills now.';
+}
+['#mod-qty', '#mod-price'].forEach(q => $(q).addEventListener('input', modNote));
+$('#mod-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const { t, id } = modOrder, q = Number($('#mod-qty').value), p = r2(Number($('#mod-price').value));
+  $('#mod-go').disabled = true;
+  try {
+    const r = await api('/api/modify', { ticker: t, id, qty: q, price: p, rid: rid() });
+    $('#modify').close();
+    toast(r.filled ? `Changed, and ${num(r.filled)} ${t} filled right away${r.resting ? `; ${num(r.resting)} still open at ${money(p)}` : ''}.` : `Order changed: ${num(q)} ${t} at ${money(p)}.`);
+  } catch (err) { $('#mod-err').textContent = err.message; $('#mod-err').hidden = false; }
+  $('#mod-go').disabled = false;
+});
+async function cancelOrder(id) {
+  const s = bySym(sel), o = s && s.orders.find(x => x.id === id && x.mine); if (!o) return;
+  if (meU.prefs.confirm && !(await ask('Cancel this order?', `<p>${o.side === 'buy' ? 'Buy' : 'Sell'} ${num(o.qty)} ${esc(s.ticker)} at ${money(o.price)}. The shares still waiting come off the book.</p>`, 'Cancel order', true, 'Keep it'))) return;
+  run(() => api('/api/cancel', { ticker: sel, id, rid: rid() }), 'Order cancelled.');
+}
 
 /* ---------- render ---------- */
 function render() {
@@ -1205,6 +1321,22 @@ function renderTicket() {
   $('#s-buy').setAttribute('aria-pressed', String(side === 'buy')); $('#s-sell').setAttribute('aria-pressed', String(side === 'sell'));
   updateSummary();
 }
+// The same checks the exchange runs, done here first so a bad order never reaches the review: [the field at fault, why]
+function orderProblem(s) {
+  const mk = market() && s.status === 'open', qv = $('#t-qty').value, pv = $('#t-price').value, q = Number(qv), p = Number(pv);
+  if (!qv || !Number.isInteger(q) || q < 1) return ['qty', 'Enter a whole number of shares, 1 or more.'];
+  if (q > 1e9) return ['qty', 'That’s more shares than the exchange takes in one order.'];
+  if (!mk && (!pv || !(p >= 0.01))) return ['price', 'Enter a limit price of at least $0.01.'];
+  if (!mk && Math.abs(p * 100 - Math.round(p * 100)) > 1e-6) return ['price', 'Prices go in $0.01 steps.'];
+  const ref = s.status === 'preopen' ? s.ipoPrice : s.last, lo = r2(ref * (1 - BAND)), hi = r2(ref * (1 + BAND));
+  if (!mk && (p < lo || p > hi)) return ['price', `Pick a price from ${money(lo)} to ${money(hi)}: within ${BAND * 100}% of ${s.status === 'preopen' ? 'the IPO price' : 'the last trade'}.`];
+  if (!meU || !meU.approved) return null; // the button opens sign-up or account opening instead
+  if (s.orders.filter(o => o.mine).length >= MAX_OPEN_ORDERS) return ['qty', `You already have ${MAX_OPEN_ORDERS} open orders on ${s.ticker}, the most allowed. Cancel some first.`];
+  if (side === 'buy') { const need = q * p * (1 + TRADE_FEE); if (need > meU.account.free + 0.005) return ['qty', `This needs ${money(need)} with the fee, but you have ${money(meU.account.free)} free. Try ${num(Math.floor(meU.account.free / (p * (1 + TRADE_FEE))))} shares or fewer.`]; }
+  else if (q > freeShares(s)) return ['qty', freeShares(s) ? `You have ${num(freeShares(s))} ${s.ticker} share${freeShares(s) === 1 ? '' : 's'} free to sell.` : held(s) ? `All ${num(held(s))} of your ${s.ticker} shares are already in open sell orders.` : `You don’t own any ${s.ticker}. Buy first, or bid in an IPO.`];
+  if (s.status === 'open' && walk(s, side, q, p).self) return ['price', `This would trade with one of your own orders, which the exchange refuses. Cancel that order first${mk ? '' : ', or change the price'}.`];
+  return null;
+}
 function updateSummary() {
   const s = bySym(sel); if (!s) return;
   const mk = market() && s.status === 'open';
@@ -1215,13 +1347,14 @@ function updateSummary() {
   $('#t-go').textContent = !meU ? 'Sign up to trade' : !meU.approved ? 'Finish opening your account' : `${side === 'buy' ? 'Buy' : 'Sell'} ${q > 0 ? num(q) : ''} ${s.ticker}${mk ? ' at market' : p > 0 ? ' @ ' + p.toFixed(2) : ''}`;
   $('#t-go').className = 'go' + (side === 'sell' ? ' sell' : '');
   $('#t-go').disabled = meU && !meU.approved ? false : !!s.halt || (!!me && s.creatorId === me) || noShares;
+  const bad = orderProblem(s);
+  $('#t-err').textContent = bad ? bad[1] : ''; $('#t-err').hidden = !bad;
+  $('#t-qty').setAttribute('aria-invalid', String(!!bad && bad[0] === 'qty')); $('#t-price').setAttribute('aria-invalid', String(!!bad && bad[0] === 'price'));
   const a = meU ? meU.account : { free: 0, reserved: 0 }, kv = (k, v, c = '') => `<div><span class="muted">${k}</span><span class="${c}">${v}</span></div>`;
   // only the part that fills on arrival pays the fee; a resting order that fills later pays nothing (both sides pay in the opening auction)
   const w = s.status === 'open' && q > 0 && p > 0 ? walk(s, side, q, p) : { filled: 0, cost: 0, levels: 0, self: false }, fee = (s.status === 'preopen' ? value : w.cost) * TRADE_FEE;
   const need = value * (1 + TRADE_FEE); // what a buy holds back: the whole order plus the most it could pay in fees
   $('#t-sum').innerHTML = (s.status === 'preopen' ? '<p class="hint">Rests until the opening auction.</p>' : '') + (mk ? `<p class="hint">Fills now at up to ${money(p)}; anything left is cancelled.</p>` : '')
-    + (w.self ? '<p class="hint bad">This would trade with one of your own orders, so it would be refused. Cancel that order first.</p>' : '')
-    + (noShares ? `<p class="hint">${held(s) ? `All ${num(held(s))} of your ${s.ticker} shares are already in open sell orders.` : `You don’t own any ${s.ticker}. Buy first, or bid in an IPO.`}</p>` : '')
     + kv('Order value', (mk ? 'up to ' : '') + money(value))
     + (w.filled ? kv('Fills now (estimate)', `${num(w.filled)} at ${money(w.cost / w.filled)} avg`) + (w.filled < q ? kv(mk ? 'Not filled, cancelled' : 'Rests on the book', num(q - w.filled) + ' shares') : '') : s.status === 'open' && value ? kv('Fills now', mk ? 'nothing in range' : 'none; it rests on the book') : '')
     + kv(s.status === 'preopen' ? `Fee if it crosses (${TRADE_FEE * 100}%)` : `Fee on what fills now (${TRADE_FEE * 100}%)`, money(fee))
@@ -1270,7 +1403,7 @@ function renderOrders() {
   const rows = stocks.flatMap(s => [...s.orders.filter(o => o.mine).map(o => ({ s, o, kind: s.status === 'preopen' ? 'Pre-open' : 'Limit', act: 'cancel' })), ...s.myBids.map(o => ({ s, o: { ...o, side: 'buy' }, kind: 'IPO bid', act: 'cancel-ioi' }))]);
   $('#b-orders').innerHTML = `<table class="grid"><thead><tr><th>Symbol</th><th>Type</th><th>Side</th><th class="n" title="Shares filled so far, of the size you placed">Filled</th><th class="n" title="Shares still waiting to fill">Remaining</th><th class="n">Price</th><th class="n" title="Cash or shares held back while it's open">Holds</th><th class="n">Placed (${TZ})</th><th></th></tr></thead><tbody>`
     + (rows.map(({ s, o, kind, act }) => `<tr><td class="sym">${esc(s.ticker)}</td><td>${kind}</td><td class="${o.side === 'buy' ? 'up' : 'down'}">${o.side === 'buy' ? 'Buy' : 'Sell'}</td><td class="n">${o.q0 ? `${num(o.q0 - o.qty)} of ${num(o.q0)}` : '—'}</td><td class="n">${num(o.qty)}</td><td class="n">${money(o.price)}</td><td class="n muted">${o.side === 'buy' ? money(o.qty * o.price) : num(o.qty) + ' sh'}</td><td class="n muted">${day(o.t)} ${hhmm(o.t)}</td>
-      <td class="n"><button type="button" class="ghost bad" data-act="${act}" data-t="${esc(s.ticker)}" data-id="${esc(o.id)}">${act === 'cancel' ? 'Cancel remaining' : 'Cancel bid'}</button></td></tr>`).join('')
+      <td class="n">${act === 'cancel' ? `<button type="button" class="ghost" data-act="modify" data-t="${esc(s.ticker)}" data-id="${esc(o.id)}" title="Change the price or the shares still to fill">Modify</button> ` : ''}<button type="button" class="ghost bad" data-act="${act}" data-t="${esc(s.ticker)}" data-id="${esc(o.id)}">${act === 'cancel' ? 'Cancel remaining' : 'Cancel bid'}</button></td></tr>`).join('')
     || '<tr><td colspan="9" class="empty">No open orders. Limit orders that don’t fill right away wait here until they fill or you cancel them.</td></tr>') + '</tbody></table>';
 }
 // Price alerts: set from the side panel (or A on the chart), listed in the Alerts tab, drawn on the chart.
@@ -1287,25 +1420,47 @@ function renderAlerts() {
   $('#al-count').textContent = live ? `${live} active` : '';
   $('#al-list').innerHTML = mine.map(a => `<li class="${a.fired ? 'muted' : ''}"><span>${a.op === 'above' ? '▲ Above' : '▼ Below'} ${money(a.price)}${a.fired ? ` · went off ${day(a.fired).replace(/, \d{4}$/, '')} ${hhmm(a.fired)}` : ''}</span><button type="button" class="x" data-del-alert="${esc(a.id)}" aria-label="Delete the alert at ${money(a.price)}" title="Delete">×</button></li>`).join('');
 }
+let alEdit = null; // the active alert being given a new price: { id, op }
 function alertHint() {
   const s = bySym(sel), p = Number($('#al-price').value);
+  $('#alert-form button[type=submit]').textContent = alEdit ? 'Save' : 'Add alert'; $('#al-cancel').hidden = !alEdit;
+  if (s && alEdit) return ($('#al-hint').textContent = `Changing an alert that goes off ${alEdit.op === 'above' ? 'at or above' : 'at or below'} its price. Pick a price ${alEdit.op} ${money(s.last)}.`);
   if (s) $('#al-hint').textContent = p > 0 && p !== s.last ? `Pops up when ${s.ticker} trades at or ${p > s.last ? 'above' : 'below'} ${money(p)}.` : `Pick a price above or below ${money(s.last)}. You get a pop-up when ${s.ticker} trades there.`;
 }
+// Active alerts, and a log of the ones that went off (target, the trade that set it off, when), newest first
+let alTab = 'active';
 function renderAlertsTab() {
   if (!meU) { $('#b-alerts').innerHTML = '<p class="empty">Sign in to set price alerts.</p>'; return; }
-  const rows = myAlerts().sort((a, b) => !!a.fired - !!b.fired || b.t - a.t);
-  $('#b-alerts').innerHTML = `<table class="grid"><thead><tr><th>Symbol</th><th>Alert when it trades</th><th>Status</th><th class="n">Set</th><th></th></tr></thead><tbody>`
-    + (rows.map(a => `<tr data-act="open" data-t="${esc(a.ticker)}"><td class="sym">${esc(a.ticker)}</td><td>${a.op === 'above' ? 'At or above' : 'At or below'} ${money(a.price)}</td><td>${a.fired ? `<span class="tag up">Went off</span> <span class="muted">${day(a.fired)} ${hhmm(a.fired)}</span>` : '<span class="tag blue">Active</span>'}</td><td class="n muted">${day(a.t)}</td>
-      <td class="n"><button type="button" class="ghost bad" data-del-alert="${esc(a.id)}">Delete</button></td></tr>`).join('')
-    || '<tr><td colspan="5" class="empty">No alerts. Set one above, press Alt+A over the chart, or right-click a price.</td></tr>') + '</tbody></table>';
+  const live = myAlerts().filter(a => !a.fired).sort((a, b) => b.t - a.t), log = myAlerts().filter(a => a.fired).sort((a, b) => b.fired - a.fired);
+  const del = (a, edit) => `<td class="n">${edit ? `<button type="button" class="x" data-edit-alert="${esc(a.id)}" aria-label="Change the ${esc(a.ticker)} alert at ${money(a.price)}" title="Change the price">✎</button>` : ''}<button type="button" class="x" data-del-alert="${esc(a.id)}" aria-label="Delete the ${esc(a.ticker)} alert at ${money(a.price)}" title="Delete">×</button></td>`;
+  const tabs = `<div class="mini altabs" role="tablist"><button type="button" role="tab" data-al="active" aria-pressed="${alTab === 'active'}">Active · ${live.length}</button><button type="button" role="tab" data-al="log" aria-pressed="${alTab === 'log'}">Log · ${log.length}</button></div>`;
+  $('#b-alerts').innerHTML = tabs + (alTab === 'active'
+    ? `<table class="grid"><thead><tr><th>Symbol</th><th>Goes off when it trades</th><th class="n">Set</th><th></th></tr></thead><tbody>`
+      + (live.map(a => `<tr data-act="open" data-t="${esc(a.ticker)}" tabindex="0"><td class="sym">${esc(a.ticker)}</td><td>${a.op === 'above' ? 'At or above' : 'At or below'} ${money(a.price)}</td><td class="n muted">${day(a.t).replace(/, \d{4}$/, '')}</td>${del(a, true)}</tr>`).join('')
+      || '<tr><td colspan="4" class="empty">No active alerts. Set one above, press Alt+A over the chart, or right-click a price.</td></tr>')
+    : `<table class="grid altab"><thead><tr><th>Symbol</th><th class="n">Alert</th><th class="n">Traded</th><th class="n">When</th><th></th></tr></thead><tbody>`
+      + (log.map(a => `<tr data-act="open" data-t="${esc(a.ticker)}" tabindex="0" title="${a.op === 'above' ? 'At or above' : 'At or below'} ${money(a.price)}; went off ${day(a.fired)} ${hhmm(a.fired)}${a.hit ? ` on a trade at ${money(a.hit)}` : ''}"><td class="sym">${esc(a.ticker)}</td><td class="n">${a.op === 'above' ? '▲' : '▼'} ${a.price.toFixed(2)}</td><td class="n">${a.hit ? a.hit.toFixed(2) : '—'}</td><td class="n muted">${new Date(a.fired).toDateString() === new Date().toDateString() ? hhmm(a.fired) : day(a.fired).replace(/, \d{4}$/, '')}</td>${del(a)}</tr>`).join('')
+      || '<tr><td colspan="5" class="empty">Nothing has gone off yet. Each alert goes off once, on the first trade at or through its price, then moves here.</td></tr>'))
+    + '</tbody></table>';
 }
+$('#b-alerts').addEventListener('click', e => { const b = e.target.closest('[data-al]'); if (b) { alTab = b.dataset.al; renderAlertsTab(); } });
 $('#al-price').addEventListener('input', alertHint);
 $('#alert-form').addEventListener('submit', async e => {
   e.preventDefault();
   const p = Number($('#al-price').value);
-  const r = await run(() => api('/api/alerts', { ticker: sel, price: p }), r => `Alert set: ${sel} ${r.op} ${money(p)}.`);
-  if (r) { $('#al-price').value = ''; await refresh(); }
+  const r = alEdit ? await run(() => api('/api/alerts/edit', { id: alEdit.id, price: p }), r => `Alert moved: ${sel} ${r.op} ${money(p)}.`)
+    : await run(() => api('/api/alerts', { ticker: sel, price: p }), r => `Alert set: ${sel} ${r.op} ${money(p)}.`);
+  if (r) { $('#al-price').value = ''; alEdit = null; alertHint(); await refresh(); }
 });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-edit-alert]'); if (!b) return;
+  e.stopPropagation();
+  const a = myAlerts().find(x => x.id === b.dataset.editAlert); if (!a) return;
+  if (a.ticker !== sel) select(a.ticker);
+  alEdit = { id: a.id, op: a.op }; setPanel('alerts');
+  $('#al-price').value = a.price.toFixed(2); alertHint(); $('#al-price').focus(); $('#al-price').select();
+}, true);
+$('#al-cancel').addEventListener('click', () => { alEdit = null; $('#al-price').value = ''; alertHint(); });
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-del-alert]'); if (!b) return;
   e.stopPropagation();
@@ -1390,9 +1545,31 @@ function renderFilings(s) {
   $('#b-filings').innerHTML = docs.sort((a, b) => b.t - a.t).map(d => { const k = d.form + d.t; return `<details class="filing" data-k="${k}" ${open.has(k) ? 'open' : ''}><summary><time>${day(d.t)}</time><span class="fcode">${d.form}</span><span>${esc(d.title)}</span></summary><div class="fdoc">${d.body}</div></details>`; }).join('');
 }
 // History: your fills, cash movements, IPO results and dividends, read from your ledger (its newest 200 entries).
-let hView = 'fills', hSym = '', hShown = null;
+let hView = 'orders', hSym = '', hShown = null;
 const cashCell = e => `<span class="${cls(e.amount)}">${money(e.amount || 0)}</span>`;
-const HV = { // view -> [name, which entries, columns: [header, cell html, raw value for the CSV, numeric], empty message]
+// Every order you placed, from its 'placed' entry, the fills that point at it and how it ended (or a refusal with its reason)
+const WHY = { you: 'Cancelled', modified: 'Replaced', market: 'Rest cancelled', closed: 'Company closed' };
+function orderRows(entries) {
+  const by = {};
+  for (const e of entries) if (e.oid) (by[e.oid] ||= []).push(e);
+  const open = new Set(stocks.flatMap(s => s.orders.filter(o => o.mine).map(o => o.id)));
+  return entries.filter(e => e.kind === 'placed' || e.kind === 'rejected').map(e => {
+    if (e.kind === 'rejected') return { ...e, status: 'Refused', filled: 0, size: e.qty, note: e.reason };
+    const xs = by[e.oid] || [], fills = xs.filter(x => x.kind === 'buy' || x.kind === 'sell'), ends = xs.filter(x => x.kind === 'cancelled');
+    const filled = fills.reduce((a, x) => a + x.qty, 0), size = e.qty - ends.filter(x => x.why === 'reduced').reduce((a, x) => a + x.qty, 0);
+    const end = ends.find(x => x.why !== 'reduced'), avg = filled ? fills.reduce((a, x) => a + x.qty * x.price, 0) / filled : null;
+    const status = open.has(e.oid) ? (filled ? 'Partly filled, open' : 'Open') : end ? (filled && end.why !== 'closed' ? 'Partly filled · ' + WHY[end.why].toLowerCase() : WHY[end.why]) : 'Filled';
+    return { ...e, filled, size, avg, status, note: end && end.why === 'modified' ? 'A new order took its place' : e.replaces ? 'Replaced an earlier order' : '' };
+  });
+}
+const HV = { // view -> [name, which entries, columns: [header, cell html, raw value for the CSV, numeric], empty message, rows built from the entries]
+  orders: ['Orders', () => true, [
+    ['Side', e => `<span class="${e.side === 'buy' ? 'up' : 'down'}">${e.side === 'buy' ? 'Buy' : 'Sell'}</span>`, e => e.side],
+    ['Type', e => e.market ? 'Market' : 'Limit', e => e.market ? 'market' : 'limit'],
+    ['Filled', e => `${num(e.filled)} of ${num(e.size)}`, e => e.filled, 1], ['Limit', e => e.market ? '—' : money(e.price), e => e.market ? '' : e.price, 1],
+    ['Avg fill', e => e.avg ? money(e.avg) : '—', e => e.avg ? r2(e.avg) : '', 1],
+    ['Status', e => `<span class="${e.status === 'Refused' ? 'down' : e.status === 'Filled' ? 'up' : ''}"${e.note ? ` title="${esc(e.note)}"` : ''}>${esc(e.status)}</span>${e.status === 'Refused' ? `<div class="muted" style="font-size:12px;white-space:normal">${esc(e.note)}</div>` : ''}`, e => e.status + (e.note ? ': ' + e.note : '')]],
+    'No orders yet. Every order you place shows up here: what filled, at what average price, and how it ended.', orderRows],
   fills: ['Fills', e => e.kind === 'buy' || e.kind === 'sell', [
     ['Side', e => `<span class="${e.kind === 'buy' ? 'up' : 'down'}">${e.kind === 'buy' ? 'Buy' : 'Sell'}</span>`, e => e.kind],
     ['Shares', e => num(e.qty), e => e.qty, 1], ['Price', e => money(e.price), e => e.price, 1], ['Value', e => money(e.qty * e.price), e => r2(e.qty * e.price), 1],
@@ -1408,11 +1585,11 @@ const HV = { // view -> [name, which entries, columns: [header, cell html, raw v
 };
 async function renderHistory() {
   const box = $('#b-history');
-  if (!meU) { box.innerHTML = '<p class="empty">Sign in to see your fills, cash, IPO results and dividends.</p>'; return; }
+  if (!meU) { box.innerHTML = '<p class="empty">Sign in to see your orders, fills, cash, IPO results and dividends.</p>'; return; }
   const data = await api('/api/activity').catch(() => null);
-  if (bTab !== 'history') return; // switched tabs while it loaded
+  if (bTab !== 'trading' || tTab !== 'history') return; // switched tabs while it loaded
   if (!data) { box.innerHTML = '<p class="empty">Couldn’t load your history. <button type="button" class="linkish" data-hretry>Try again</button></p>'; return; }
-  const [name, keep, cols, none] = HV[hView], all = data.entries.filter(keep), rows = all.filter(e => !hSym || e.ticker === hSym), syms = [...new Set(data.entries.map(e => e.ticker))].sort();
+  const [name, keep, cols, none, prep] = HV[hView], all = (prep ? prep(data.entries) : data.entries).filter(keep), rows = all.filter(e => !hSym || e.ticker === hSym), syms = [...new Set(data.entries.map(e => e.ticker))].sort();
   hShown = { cols, rows };
   const live = t => ['open', 'preopen'].includes((bySym(t) || {}).status);
   box.innerHTML = `<div class="hbar"><span class="mini" role="group" aria-label="History view">${Object.entries(HV).map(([k, [n]]) => `<button type="button" data-hv="${k}" aria-pressed="${k === hView}">${n}</button>`).join('')}</span>
@@ -1421,7 +1598,7 @@ async function renderHistory() {
     <table class="grid"><thead><tr><th>Time (${TZ})</th><th>Symbol</th>${cols.map(([h, , , n]) => `<th class="${n ? 'n' : ''}">${h}</th>`).join('')}</tr></thead><tbody>
     ${rows.map(e => `<tr${live(e.ticker) ? ` data-act="open" data-t="${esc(e.ticker)}"` : ''}><td class="muted">${day(e.t)} ${hhmm(e.t)}</td><td class="sym">${esc(e.ticker)}</td>${cols.map(([, f, , n]) => `<td class="${n ? 'n' : ''}">${f(e)}</td>`).join('')}</tr>`).join('')
       || `<tr><td colspan="${cols.length + 2}" class="empty">${all.length ? `No ${name.toLowerCase()} for ${esc(hSym)}. <button type="button" class="linkish" data-hsym>Show every symbol</button>` : none}</td></tr>`}</tbody></table>
-    <p class="hint" style="padding:6px 10px">${data.entries.length >= 200 ? 'Your newest 200 entries. ' : ''}Your full statement downloads from Settings › Your data.</p>`;
+    <p class="hint" style="padding:6px 10px">${data.entries.length >= 500 ? 'Your newest 500 entries. ' : ''}Your full statement downloads from Settings › Your data.</p>`;
 }
 document.addEventListener('click', e => {
   const v = e.target.closest('[data-hv]'); if (v) { hView = v.dataset.hv; renderHistory(); }
@@ -1783,7 +1960,7 @@ async function renderAccount() {
   const card = (k, v, c = '') => `<div class="card"><span class="muted">${k}</span><span class="big ${c}">${v}</span></div>`;
   $('#acct-sum').innerHTML = card('Net worth', money(a.worth), cls(a.worth - START_CASH)) + card('Return', pct(a.worth / START_CASH - 1), cls(a.worth - START_CASH)) + card('Free cash', money(a.free))
     + card('Held for orders and bids', money(a.reserved)) + card('Dividends received', money(a.divs)) + card('Realized P&L', money(realized), cls(realized)) + card('Fees paid', money(fees));
-  $('#ledger').innerHTML = data.entries.map(e => `<tr class="${e.t > data.seen ? 'new' : ''}"><td class="muted">${day(e.t)} ${hhmm(e.t)}</td><td>${e.t > data.seen ? '<span class="tag blue">New</span> ' : ''}${esc(describe(e))}</td><td class="n ${cls(e.amount)}">${e.amount ? money(e.amount) : '—'}</td><td class="n">${e.fee ? money(e.fee) : '—'}</td><td class="n ${cls(e.realized || 0)}">${e.realized !== undefined ? money(e.realized) : ''}</td></tr>`).join('')
+  $('#ledger').innerHTML = data.entries.filter(e => NOTIFY[e.kind]).map(e => `<tr class="${e.t > data.seen ? 'new' : ''}"><td class="muted">${day(e.t)} ${hhmm(e.t)}</td><td>${e.t > data.seen ? '<span class="tag blue">New</span> ' : ''}${esc(describe(e))}</td><td class="n ${cls(e.amount)}">${e.amount ? money(e.amount) : '—'}</td><td class="n">${e.fee ? money(e.fee) : '—'}</td><td class="n ${cls(e.realized || 0)}">${e.realized !== undefined ? money(e.realized) : ''}</td></tr>`).join('')
     || '<tr><td colspan="5" class="empty">Nothing yet. Your fills, IPO allocations and dividends show up here.</td></tr>';
   if (meU.unread) api('/api/seen', {}).catch(() => {});
 }
@@ -1920,7 +2097,7 @@ function setView(v) {
   if (v === 'desk') loadWaitlist();
   render();
 }
-function select(t) { sel = t; chart.hover = null; setView('trade'); prefill(); prefillReport(); loadHistory(t); }
+function select(t) { sel = t; chart.hover = null; alEdit = null; setView('trade'); prefill(); prefillReport(); loadHistory(t); }
 
 document.addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
 document.addEventListener('click', async e => {
@@ -1988,7 +2165,7 @@ document.addEventListener('keydown', e => { // arrow keys inside a menu; Esc clo
   if (e.key === 'Escape') { e.preventDefault(); closeMenus(); return; }
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
   e.preventDefault();
-  const items = [...m.querySelectorAll('button:not([hidden]), a, label')], i = items.indexOf(document.activeElement);
+  const items = [...m.querySelectorAll('button:not([hidden]), a, label')].filter(x => x.getClientRects().length), i = items.indexOf(document.activeElement); // skip items hidden at this width
   items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
 });
 $('#menu-btn').addEventListener('click', () => {
@@ -1996,7 +2173,11 @@ $('#menu-btn').addEventListener('click', () => {
   $('#menu').hidden = !open; $('#menu-btn').setAttribute('aria-expanded', String(open));
   if (open) $('#menu button').focus();
 });
-$('#menu').addEventListener('click', e => { if (e.target.closest('a')) closeMenus(); });
+$('#menu').addEventListener('click', e => {
+  if (e.target.closest('a')) closeMenus();
+  if (e.target.closest('[data-menu-snap]')) { closeMenus(); setView('trade'); $('#snap-btn').click(); }
+  if (e.target.closest('[data-menu-full]')) { closeMenus(); $('#full-btn').click(); }
+});
 
 // intervals: the starred ones get a toolbar button; the arrow lists them all
 function setTf(ms) { chart.tf = ms; store('cx.tf', ms); renderToolbar(); drawChart(); }
@@ -2160,6 +2341,7 @@ const setDemo = on => { showDemo = on; store('cx.demo', on); $('#demo-tog').chec
 $('#demo-tog').checked = showDemo;
 $('#demo-tog').addEventListener('change', e => setDemo(e.target.checked));
 document.addEventListener('click', e => { if (e.target.closest('[data-demo-on]')) setDemo(true); });
+document.addEventListener('click', e => { if (e.target.closest('[data-chart-retry]') && hist[sel]) { hist[sel].err = false; drawChart(); loadHistory(sel); } });
 // order book: click a price to trade at it, as on TradingView's DOM (an ask buys, a bid sells), through the usual order review
 function quickTrade(sd, type, px, qty) {
   side = sd; $('#ot-' + type).checked = true; if (qty) $('#t-qty').value = qty;
@@ -2238,7 +2420,7 @@ function renderSettings() {
   const kv = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
   const k = meU.kyc;
   $('#set-who').innerHTML = kv('Username', esc(meU.name)) + kv('Email', meU.email ? esc(meU.email) + (meU.emailOk ? ' · confirmed' : ' · not confirmed yet') : '—')
-    + (k.first ? kv('Legal name', esc(k.first + ' ' + k.last)) : '') + kv('Member since', day(meU.created))
+    + (k.first ? kv('Legal name', esc(k.first + ' ' + k.last)) : '') + (meU.approved ? kv('About you', 'Name, birthday, state and finances · <button type="button" class="linkish" data-about-edit>Edit</button>') : '') + kv('Member since', day(meU.created))
     + kv('Account', (owner ? 'Exchange operator' : 'Trader') + (meU.approved ? ` · open since ${day(k.ok)}` : ' · <button type="button" class="linkish" data-onboard>finish opening it</button>'))
     + (k.income !== undefined ? kv('Crowdfunding limit', limitText(k)) : '');
   for (const [id, [get]] of Object.entries(SET)) {
@@ -2296,12 +2478,13 @@ function review() {
     + (w.self ? '<p class="hint bad">This would trade with one of your own orders, so the exchange will refuse it. Cancel that order first.</p>' : '')
     + (pre ? '' : '<p class="hint">Estimated from the order book right now. If the book changes before your order arrives, the fill can differ. Play money.</p>');
 }
-function confirmOrder() {
-  const d = $('#confirm'), mk = market() && bySym(sel).status === 'open';
-  $('#cf-title').textContent = 'Review: ' + $('#t-go').textContent;
-  $('#cf-body').innerHTML = review();
-  $('#cf-limit').hidden = !mk; // a market order can fill worse than expected; a limit order caps the price
-  $('#cf-go').className = 'go' + (side === 'sell' ? ' sell' : '');
+// the review dialog: yes/no, with "Don't ask again" (Settings → order reviews); `limit` offers a switch to a limit order
+function ask(title, body, go, sell, no = 'Cancel', limit = false) {
+  const d = $('#confirm');
+  $('#cf-title').textContent = title; $('#cf-body').innerHTML = body;
+  $('#cf-go').textContent = go; $('#cf-no').textContent = no;
+  $('#cf-limit').hidden = !limit;
+  $('#cf-go').className = 'go' + (sell ? ' sell' : '');
   $('#cf-skip').checked = false;
   d.returnValue = ''; d.showModal();
   return new Promise(res => d.addEventListener('close', () => {
@@ -2311,6 +2494,8 @@ function confirmOrder() {
     res(yes);
   }, { once: true }));
 }
+// a market order can fill worse than expected; a limit order caps the price
+const confirmOrder = () => ask('Review: ' + $('#t-go').textContent, review(), 'Place order', side === 'sell', 'Cancel', market() && bySym(sel).status === 'open');
 
 /* ---------- getting started ---------- */
 function renderChecklist() {
@@ -2334,6 +2519,7 @@ document.addEventListener('click', e => {
   if (e.target.closest('[data-hide-checklist]')) saveMe({ prefs: { checklist: false } }, 'Checklist hidden. You can bring it back in Settings.');
   if (e.target.closest('[data-wl]')) { setPanel('watch'); $('#wl').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   if (e.target.closest('[data-onboard]')) openOnboarding();
+  if (e.target.closest('[data-about-edit]')) editAbout();
   if (e.target.closest('[data-tour]')) startTour();
 });
 
@@ -2357,9 +2543,14 @@ const limitLine = () => ob.f.income != null && ob.f.income !== '' && ob.f.worth 
 function openOnboarding() {
   const k = meU.kyc, todo = !meU.emailOk ? 'email' : !k.dob || k.income === undefined ? 'about' : !k.quiz || !k.agreed ? 'check' : 'verify';
   ob.list = meU.approved ? ['learn', 'welcome'] : [...OPEN, 'verify', 'welcome'];
-  Object.assign(ob, { step: meU.approved ? 0 : ob.list.indexOf(todo), min: meU.emailOk && !meU.approved ? 1 : 0, role: meU.role || 'investor', favs: new Set(meU.favs), claim: '', done: false,
+  Object.assign(ob, { edit: false, step: meU.approved ? 0 : ob.list.indexOf(todo), min: meU.emailOk && !meU.approved ? 1 : 0, role: meU.role || 'investor', favs: new Set(meU.favs), claim: '', done: false,
     f: { ...k, where: k.country === 'other' ? 'other' : k.state || '', role: meU.role || 'investor' }, quiz: [], wrong: new Set(), agreed: false, checked: 0, note: '', opened: false, shown: null });
   if (!research) loadResearch().then(() => obAt() === 'welcome' && renderOnboarding());
+  obErr(''); $('#onboard').showModal(); renderOnboarding();
+}
+function editAbout() { // an open account: change your name, birthday, state or money answers on the same About you screen
+  const k = meU.kyc;
+  Object.assign(ob, { list: ['about'], step: 0, min: 0, edit: true, done: true, f: { ...k, where: k.country === 'other' ? 'other' : k.state || '' }, shown: null });
   obErr(''); $('#onboard').showModal(); renderOnboarding();
 }
 const fld = (k, label, attrs = '') => `<div class="fld"><label for="ob-${k}">${label}</label><input id="ob-${k}" data-f="${k}" value="${esc(ob.f[k] ?? '')}" ${attrs}></div>`;
@@ -2412,11 +2603,12 @@ function renderOnboarding() {
   $('#ob-dots').innerHTML = names.map((n, i) => `<i class="${i < at ? 'on' : i === at ? 'on now' : ''}"${i === at ? ' aria-current="step"' : ''}>${n}</i>`).join('');
   $('#ob-body').innerHTML = OB[id](creator);
   if (ob.shown !== id) { ob.shown = id; const b = $('#ob-body'); b.classList.remove('enter'); void b.offsetWidth; b.classList.add('enter'); } // a soft slide only when the step changes
-  $('#ob-back').hidden = ob.step <= ob.min || ob.checking || id === 'welcome';
+  $('#ob-back').hidden = !ob.edit && (ob.step <= ob.min || ob.checking || id === 'welcome');
+  $('#ob-back').textContent = ob.edit ? 'Cancel' : 'Back';
   $('#ob-next').hidden = id === 'welcome' || (id === 'verify' && ob.checking);
   $('#ob-next').parentElement.hidden = id === 'welcome'; // the welcome has its own buttons
   $('#ob-next').disabled = (id === 'check' && !ob.agreed) || ob.checking;
-  $('#ob-next').textContent = { email: 'Confirm', check: 'Open my account', verify: 'Try again' }[id] || 'Next';
+  $('#ob-next').textContent = ob.edit ? 'Save' : { email: 'Confirm', check: 'Open my account', verify: 'Try again' }[id] || 'Next';
   if (id === 'verify' && !meU.approved && !ob.checking && !ob.checked) runChecks();
 }
 async function runChecks() { // the simulated identity check: a second of checks, then the account opens and the welcome shows
@@ -2488,16 +2680,17 @@ $('#ob-next').addEventListener('click', async () => {
     try { r = await go(); } catch (e) { obErr(e.message); $('#ob-next').disabled = false; return; }
     if (r === false) return;
   }
+  if (ob.edit) { ob.edit = false; $('#onboard').close(); toast('Your details are saved.'); return renderSettings(); }
   ob.step++; renderOnboarding();
   ($('#ob-body input:not([type=radio]):not([type=checkbox]), #ob-body select') || ($('#ob-next').hidden ? $('#onboard [data-ob-end]') : $('#ob-next')))?.focus(); // nothing to focus while the ID check runs
 });
-$('#ob-back').addEventListener('click', () => { obErr(''); ob.step--; renderOnboarding(); });
+$('#ob-back').addEventListener('click', () => { obErr(''); if (ob.edit) { ob.edit = false; return $('#onboard').close(); } ob.step--; renderOnboarding(); });
 $('#onboard').addEventListener('click', e => {
   const b = e.target.closest('[data-ob-end]'); if (b) finishOnboarding(b.dataset.obEnd);
   const r = e.target.closest('[data-ob-resend]'); if (r) resendCode(r.dataset.obResend === 'mail');
 });
 // Esc skips the rest for now; an account that isn't open yet picks up where it left off next time
-$('#onboard').addEventListener('close', () => { if (!ob.done && meU && meU.approved) finishOnboarding(''); ob.done = true; });
+$('#onboard').addEventListener('close', () => { if (!ob.done && meU && meU.approved) finishOnboarding(''); ob.done = true; ob.edit = false; });
 async function finishOnboarding(next) {
   ob.done = true;
   if ($('#onboard').open) $('#onboard').close();
@@ -2566,6 +2759,7 @@ function authMode(up) {
   $('#au-pw').placeholder = up ? 'At least 8 characters' : '';
   $('#au-terms').innerHTML = up ? 'By creating an account you confirm you’re 18 or older and agree to the <a href="legal.html" target="_blank">terms</a>.' : 'Play money only. <a href="legal.html" target="_blank">Terms, privacy and risks</a>.';
   $('#au-err').hidden = true;
+  $('#au-forgot-row').hidden = up;
 }
 // the username fills itself in from the email until the person types their own
 $('#au-email').addEventListener('input', () => {
@@ -2591,6 +2785,35 @@ $('#auth-form').addEventListener('submit', async e => {
     if (r.mailError) obErr(r.mailError);
   }
   catch (err) { $('#au-err').textContent = err.message; $('#au-err').hidden = false; }
+});
+
+// forgot password: a code to the account's email, then the code and a new password (which signs out every other device)
+let rsSent = false;
+function resetStep(sent, note) {
+  rsSent = sent; $('#rs-step2').hidden = !sent; $('#rs-resend-w').hidden = !sent; $('#rs-err').hidden = true;
+  $('#rs-go').textContent = sent ? 'Set new password' : 'Send code';
+  $('#rs-sub').innerHTML = note || 'Enter your username or the email on your account. We’ll email you a 6-digit code.';
+}
+$('#au-forgot').addEventListener('click', () => {
+  resetStep(false); $('#rs-name').value = $('#au-name').value; $('#rs-code').value = ''; $('#rs-pw').value = '';
+  $('#auth').close(); $('#reset').showModal(); $('#rs-name').focus();
+});
+$('#rs-back').addEventListener('click', () => { $('#reset').close(); authMode(false); $('#au-name').value = $('#rs-name').value; $('#auth').showModal(); });
+$('#rs-resend').addEventListener('click', () => { rsSent = false; $('#rs-form').requestSubmit(); });
+$('#rs-form').addEventListener('submit', async e => {
+  e.preventDefault(); $('#rs-go').disabled = true;
+  try {
+    if (!rsSent) {
+      const r = await api('/api/reset/start', { name: $('#rs-name').value });
+      resetStep(true, r.devCode ? `Your code: <span class="code">${r.devCode}</span>` : 'If that account exists, a code is on its way to its email. It expires in 15 minutes.');
+      $('#rs-code').value = r.devCode || ''; $(r.devCode ? '#rs-pw' : '#rs-code').focus();
+    } else {
+      await api('/api/reset/finish', { name: $('#rs-name').value, code: $('#rs-code').value, password: $('#rs-pw').value });
+      $('#reset').close(); $('#rs-pw').value = ''; obAsked = false; await refresh();
+      toast('Password changed. You’re signed in here, and signed out everywhere else.');
+    }
+  } catch (err) { $('#rs-err').textContent = err.message; $('#rs-err').hidden = false; }
+  $('#rs-go').disabled = false;
 });
 
 /* ---------- forms ---------- */
@@ -2650,6 +2873,7 @@ document.addEventListener('click', async e => {
       return run(() => api('/api/cancel', { ticker: t, id: b.dataset.id, rid: rid() }), 'Cancelled. The unfilled shares are off the book.');
     },
     'cancel-ioi': () => run(() => api('/api/cancel-ioi', { ticker: t, id: b.dataset.id, rid: rid() }), 'Bid cancelled.'),
+    modify: () => openModify(t, b.dataset.id),
     verify: () => run(() => api('/api/verify', { ticker: t, q: Number(b.dataset.q), key: b.dataset.k }), `${label(b.dataset.k)} verified for ${t}.`),
     'confirm-id': () => run(() => api('/api/confirm-id', { ticker: t }), `${t}: identity confirmed.`),
     approve: () => run(() => api('/api/approve', { ticker: t, days: Number($('#desk-days').value) || 3 }), `${t} approved. Its roadshow is taking bids.`).then(() => { ipoSel = t; }),
@@ -2683,6 +2907,8 @@ $('#trade').addEventListener('submit', async e => {
   const s = bySym(sel); if (!s) return;
   if (!meU) { authMode(true); $('#auth').showModal(); return; }
   if (!meU.approved) return openOnboarding();
+  const bad = orderProblem(s);
+  if (bad) { if (panel !== 'order') setPanel('order'); updateSummary(); const f = $(bad[0] === 'qty' ? '#t-qty' : '#t-price'); f.disabled ? $('#t-qty').focus() : (f.focus(), f.select()); return; }
   if (meU.prefs.confirm && !(await confirmOrder())) return;
   $('#t-go').disabled = true;
   // say what actually happened: filled, partly filled, open on the book, not filled, or refused. "Placed" never means filled.

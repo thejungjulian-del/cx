@@ -48,7 +48,7 @@
     for (const a of db.alerts) {
       if (a.ticker !== s.ticker || a.fired) continue;
       const x = xs.find(x => a.op === 'above' ? x.p >= a.price : x.p <= a.price);
-      if (x) { a.fired = x.t; db.ledger.push({ id: 'alert-' + a.id, uid: a.uid, ticker: s.ticker, kind: 'alert', op: a.op, target: a.price, price: x.p, qty: 0, amount: 0, t: x.t }); }
+      if (x) { a.fired = x.t; a.hit = x.p; db.ledger.push({ id: 'alert-' + a.id, uid: a.uid, ticker: s.ticker, kind: 'alert', op: a.op, target: a.price, price: x.p, qty: 0, amount: 0, t: x.t }); }
     }
   }
   function haltLateFilers() { for (const t in db.stocks) if (!db.stocks[t].halt && (E.filingStatus(db.stocks[t], Date.now()) || {}).delinquent) act(t, s => { E.haltIfLate(s, Date.now()); }); }
@@ -84,9 +84,9 @@
   function signedIn(u) { if (!u) fail(401, 'Sign in to do that.'); }
   function ready(u) { signedIn(u); if (!approved(u)) fail(403, 'Finish opening your account first.'); }
   function owner(u) { signedIn(u); if (!u.owner) fail(403, 'Only the exchange can do that.'); } // the demo visitor is never the operator
-  async function sendCode(u) { // no email in the demo: the code comes back to the page, as the server does on its own computer
+  async function sendCode(u, key = 'code') { // no email in the demo: the code comes back to the page, as the server does on its own computer
     const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1e6).padStart(6, '0');
-    u.code = { h: await hashPw(code, u.salt), exp: Date.now() + 15 * 60e3, tries: 0 }; save();
+    u[key] = { h: await hashPw(code, u.salt), exp: Date.now() + 15 * 60e3, tries: 0 }; save();
     return { devCode: code };
   }
   const ROLES = ['investor', 'creator', 'browsing'], TFS = [15 * 60e3, 3600e3, 4 * 3600e3, 864e5, 7 * 864e5];
@@ -139,7 +139,7 @@
     const mine = u ? db.ledger.filter(e => e.uid === u.id) : [];
     return {
       version,
-      me: u ? { id: u.id, name: u.name, email: u.email || null, emailOk: !!u.emailOk, kyc: u.kyc || {}, approved: approved(u), owner: !!u.owner, onboarded: !!u.onboarded, account: E.account(all, u.id), unread: mine.filter(e => e.t > (u.seen || 0)).length,
+      me: u ? { id: u.id, name: u.name, email: u.email || null, emailOk: !!u.emailOk, kyc: u.kyc || {}, approved: approved(u), owner: !!u.owner, onboarded: !!u.onboarded, account: E.account(all, u.id), unread: mine.filter(e => e.t > (u.seen || 0) && !E.ORDER_LOG.includes(e.kind)).length,
         created: u.created, role: u.role || null, favs: (u.favs || []).filter(t => db.stocks[t]), prefs: prefsOf(u), hidden: !!u.hidden, tour: !!u.tour,
         devices: 1, alerts: db.alerts.filter(a => a.uid === u.id).map(({ uid, ...a }) => a),
         firsts: { trade: mine.some(e => e.kind === 'buy' || e.kind === 'sell'), bid: mine.some(e => e.kind === 'ipo') || all.some(s => (s.iois || []).some(b => b.uid === u.id)), payout: mine.some(e => e.kind === 'payout') } } : null,
@@ -176,7 +176,7 @@
       if (!db.stocks[t]) fail(404, 'That listing does not exist.');
       return { rows: (db.execs[t] || []).filter(x => x.id > after).map(x => [x.id, x.t, x.p, x.q]) };
     },
-    'GET /api/activity': ({ u }) => { if (!u) fail(401, 'Sign in first.'); return { entries: db.ledger.filter(e => e.uid === u.id).slice(-200).reverse(), seen: u.seen || 0 }; },
+    'GET /api/activity': ({ u }) => { if (!u) fail(401, 'Sign in first.'); return { entries: db.ledger.filter(e => e.uid === u.id).slice(-500).reverse(), seen: u.seen || 0 }; },
     'POST /api/seen': ({ u }) => { if (!u) fail(401, 'Sign in first.'); u.seen = Date.now(); changed(); return {}; },
     // CX Research and the channel valuer read live public stats on the server; the demo has none of their data
     'GET /api/research': () => ({ creators: [], asOf: null, refreshing: false, log: '' }),
@@ -221,6 +221,21 @@
       db.uid = x.id; save();
       return { ok: true };
     },
+    'POST /api/reset/start': async ({ body }) => {
+      const n = String(body.name || '').trim().toLowerCase(), x = n && Object.values(db.users).find(v => v.name === n || v.email === n);
+      if (!x) fail(400, 'No account uses that username or email.');
+      return sendCode(x, 'reset');
+    },
+    'POST /api/reset/finish': async ({ body }) => {
+      const n = String(body.name || '').trim().toLowerCase(), x = n && Object.values(db.users).find(v => v.name === n || v.email === n), c = x && x.reset;
+      if (!c || c.exp < Date.now() || c.tries >= 5) fail(400, 'That code has expired. Send a new one.');
+      if (await hashPw(String(body.code || '').replace(/\D/g, ''), x.salt) !== c.h) { c.tries++; save(); fail(400, c.tries >= 5 ? 'Too many wrong codes. Send a new one.' : 'That code isn’t right. Check the email and try again.'); }
+      if (String(body.password || '').length < 8) fail(400, 'Use a new password of at least 8 characters.');
+      x.salt = hex(16); x.hash = await hashPw(String(body.password), x.salt);
+      x.emailOk = true; delete x.reset; delete x.code;
+      db.uid = x.id; changed();
+      return { ok: true };
+    },
     'POST /api/logout': () => { db.uid = null; save(); return { ok: true }; },
     'POST /api/onboarded': ({ u }) => { if (!u) fail(401, 'Sign in first.'); u.onboarded = true; save(); return {}; },
 
@@ -246,7 +261,7 @@
       signedIn(u);
       if (!u.emailOk) fail(400, 'Confirm your email first.');
       const k = u.kyc ||= {}, now = Date.now();
-      if (k.ok) fail(400, 'Your account is already open.');
+      if (k.ok && !['about', 'money'].includes(body.step)) fail(400, 'Your account is already open.'); // after it's open, only your details and finances can change
       const pick = key => { const v = String(body[key] || ''); if (!E.KYC[key].some(o => o[0] === v)) fail(400, 'Answer every question.'); return v; };
       const dollars = (v, name) => { const x = Number(v); if (v === '' || v == null || !Number.isFinite(x) || x < 0 || x > 1e11) fail(400, `Enter your ${name} in dollars. 0 is fine.`); return Math.round(x); };
       if (body.step === 'about') {
@@ -296,7 +311,7 @@
     'POST /api/logout-others': ({ u }) => { signedIn(u); return { ok: true }; }, // one browser, one session
     'GET /api/export': ({ u }) => {
       signedIn(u);
-      const all = Object.values(db.stocks), { salt, hash, code, ...profile } = u;
+      const all = Object.values(db.stocks), { salt, hash, code, reset, ...profile } = u;
       return {
         exported: new Date().toISOString(), profile, account: E.account(all, u.id),
         positions: all.filter(s => s.holders[u.id]).map(s => ({ ticker: s.ticker, shares: s.holders[u.id], cost: s.basis[u.id] || 0, payouts: (s.divs || {})[u.id] || 0 })),
@@ -325,25 +340,36 @@
       const t = tickerOf(body.ticker), side = body.side;
       if (side !== 'buy' && side !== 'sell') fail(400, 'Pick buy or sell.');
       if (body.market !== undefined && typeof body.market !== 'boolean') fail(400, 'Pick a market or limit order.');
-      return act(t, s => {
-        const o = { id: newId('o'), uid: u.id, side, qty: int(body.qty, 'shares'), price: body.market ? E.marketLimit(s, side) : price(body.price), t: Date.now() };
-        if (body.market) o.ioc = true;
-        E.checkOrder(Object.values(db.stocks), s, o);
-        return E.placeOrder(s, o);
-      }, idemOf(u, body, 'order', ['ticker', 'side', 'qty', 'price', 'market']));
+      const idem = idemOf(u, body, 'order', ['ticker', 'side', 'qty', 'price', 'market']);
+      try {
+        return act(t, s => {
+          const o = { id: newId('o'), uid: u.id, side, qty: int(body.qty, 'shares'), price: body.market ? E.marketLimit(s, side) : price(body.price), t: Date.now() };
+          if (body.market) o.ioc = true;
+          E.checkOrder(Object.values(db.stocks), s, o);
+          return E.placeOrder(s, o);
+        }, idem);
+      } catch (e) { // a refused order stays in the order history with its reason, as on the server
+        if (db.stocks[t] && (e instanceof HttpError ? e.code === 400 : e.constructor === Error)) { db.ledger.push({ id: newId('rej-'), uid: u.id, ticker: t, kind: 'rejected', side, qty: Number(body.qty) || 0, price: body.market ? null : Number(body.price) || 0, market: !!body.market, reason: e.message, t: Date.now() }); changed(); }
+        throw e;
+      }
     },
     'POST /api/modify': ({ u, body }) => {
       ready(u);
       return act(tickerOf(body.ticker), s => {
         const o = s.orders.find(x => x.id === body.id && x.uid === u.id);
         if (!o) fail(404, 'That order is no longer open.');
-        s.orders = s.orders.filter(x => x !== o);
-        const n = { id: newId('o'), uid: u.id, side: o.side, qty: o.qty, price: price(body.price), t: Date.now(), q0: o.q0 };
+        const p = body.price === undefined ? o.price : price(body.price), q = body.qty === undefined ? o.qty : int(body.qty, 'shares'), done = (o.q0 || o.qty) - o.qty;
+        if (p === o.price && q === o.qty) fail(400, 'Nothing changed: that’s already the order’s price and size.');
+        if (p === o.price && q < o.qty) { E.reduceOrder(s, o, q, Date.now()); return { filled: 0, cost: 0, resting: q, cancelled: 0 }; }
+        E.cancelOrder(s, u.id, o.id, 'modified', Date.now());
+        const n = { id: newId('o'), uid: u.id, side: o.side, qty: q, price: p, t: Date.now(), replaces: o.id };
         E.checkOrder(Object.values(db.stocks), s, n);
-        return E.placeOrder(s, n);
-      }, idemOf(u, body, 'modify', ['ticker', 'id', 'price']));
+        const r = E.placeOrder(s, n);
+        n.q0 += done;
+        return r;
+      }, idemOf(u, body, 'modify', ['ticker', 'id', 'price', 'qty']));
     },
-    'POST /api/cancel': ({ u, body }) => { signedIn(u); return act(tickerOf(body.ticker), s => { s.orders = s.orders.filter(o => !(o.id === body.id && o.uid === u.id)); }, idemOf(u, body, 'cancel', ['ticker', 'id'])); },
+    'POST /api/cancel': ({ u, body }) => { signedIn(u); return act(tickerOf(body.ticker), s => { E.cancelOrder(s, u.id, String(body.id), 'you', Date.now()); }, idemOf(u, body, 'cancel', ['ticker', 'id'])); },
     'POST /api/ioi': ({ u, body }) => {
       ready(u);
       return act(tickerOf(body.ticker), s => {
@@ -364,6 +390,16 @@
       const a = { id: hex(6), uid: u.id, ticker: t, op: p > s.last ? 'above' : 'below', price: p, t: Date.now(), fired: null };
       db.alerts.push(a); changed();
       return { id: a.id, op: a.op };
+    },
+    'POST /api/alerts/edit': ({ u, body }) => {
+      signedIn(u);
+      const a = db.alerts.find(x => x.id === String(body.id) && x.uid === u.id && !x.fired), p = price(body.price);
+      if (!a) fail(404, 'That alert already went off or was deleted.');
+      const s = db.stocks[a.ticker];
+      if (!s || s.status !== 'open') fail(400, 'Alerts work on listings that are trading.');
+      if (a.op === 'above' ? p <= s.last : p >= s.last) fail(400, `This alert goes off ${a.op === 'above' ? 'at or above' : 'at or below'} its price, and ${a.ticker} is at ${E.money(s.last)}. Pick a price ${a.op} that.`);
+      a.price = p; changed();
+      return { op: a.op };
     },
     'POST /api/alerts/delete': ({ u, body }) => {
       signedIn(u);

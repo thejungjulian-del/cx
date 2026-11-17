@@ -31,6 +31,16 @@ export const money = x => (x < 0 ? '-$' : '$') + Math.abs(x).toLocaleString('en-
 const log = (s, kind, text, now) => { s.events = [...s.events, { kind, text, t: now }].slice(-60); };
 // account activity for the ledger; the server drains s.pending after each change (simulated accounts are skipped)
 const note = (s, e) => { if (![HOUSE, PUBLIC, CREATOR].includes(e.uid)) (s.pending ||= []).push({ ticker: s.ticker, ...e }); };
+// an order's life for its owner's order history; these entries don't count as notifications
+export const ORDER_LOG = ['placed', 'cancelled', 'rejected'];
+// shares of an order leaving the book unfilled, and why: 'you', 'modified' (replaced by a new order), 'reduced' (made smaller), 'market' (a market order's unfilled rest), 'closed'
+const noteCancel = (s, o, qty, why, now) => { if (qty > 0) note(s, { uid: o.uid, kind: 'cancelled', oid: o.id, side: o.side, qty, price: o.price, why, t: now }); };
+export function cancelOrder(s, uid, id, why, now) {
+  const o = s.orders.find(x => x.id === id && x.uid === uid);
+  if (o) { s.orders = s.orders.filter(x => x !== o); noteCancel(s, o, o.qty, why, now); }
+  return o;
+}
+export function reduceOrder(s, o, q, now) { noteCancel(s, o, o.qty - q, 'reduced', now); o.q0 = (o.q0 || o.qty) - (o.qty - q); o.qty = q; }
 
 // What the model prices from: the last four quarterly reports, or the application's 12-month figures before any report.
 export function basisFilings(s) { const q = s.quarters.slice(-4); return q.length ? q : [{ sources: s.sources, costs: s.costs, verified: s.verified }]; }
@@ -201,7 +211,7 @@ export function openTrading(s, now) {
     const sells = s.orders.filter(o => o.side === 'sell' && o.price <= x.p).sort((a, b) => a.price - b.price || a.t - b.t);
     for (let left = x.vol, i = 0, j = 0; left > 0;) {
       const b = buys[i], a = sells[j], q = Math.min(b.qty, a.qty, left);
-      fill(s, b.uid, a.uid, q, x.p, now, [b.uid, a.uid]);
+      fill(s, b.uid, a.uid, q, x.p, now, [b.uid, a.uid], [b.id, a.id]);
       b.qty -= q; a.qty -= q; left -= q;
       if (!b.qty) i++;
       if (!a.qty) j++;
@@ -244,8 +254,8 @@ export function quoteHouse(s, now) {
   for (const o of buys) { o.qty = Math.floor(o.qty * k); if (o.qty > 0) s.orders.push(o); }
 }
 
-// `payers` are the sides charged the trading fee.
-export function fill(s, buyer, seller, q, p, now, payers) {
+// `payers` are the sides charged the trading fee; `oids` the buy and sell order ids, so each fill shows under its order.
+export function fill(s, buyer, seller, q, p, now, payers, oids = []) {
   const cash = r2(q * p), fee = r2(cash * TRADE_FEE), h = s.holders[seller], soldBasis = r2(s.basis[seller] * q / h);
   add(s.flows, buyer, -cash); add(s.basis, buyer, cash); add(s.holders, buyer, q);
   add(s.flows, seller, cash);
@@ -254,8 +264,8 @@ export function fill(s, buyer, seller, q, p, now, payers) {
   if (!s.holders[seller]) { delete s.holders[seller]; delete s.basis[seller]; }
   for (const u of payers) { add(s.flows, u, -fee); s.fees = r2(s.fees + fee); if (u === buyer) add(s.basis, buyer, fee); }
   const bf = payers.includes(buyer) ? fee : 0, sf = payers.includes(seller) ? fee : 0;
-  note(s, { uid: buyer, kind: 'buy', qty: q, price: p, amount: -r2(cash + bf), fee: bf, t: now });
-  note(s, { uid: seller, kind: 'sell', qty: q, price: p, amount: r2(cash - sf), fee: sf, realized: r2(cash - soldBasis - sf), t: now });
+  note(s, { uid: buyer, kind: 'buy', oid: oids[0], qty: q, price: p, amount: -r2(cash + bf), fee: bf, t: now });
+  note(s, { uid: seller, kind: 'sell', oid: oids[1], qty: q, price: p, amount: r2(cash - sf), fee: sf, realized: r2(cash - soldBasis - sf), t: now });
   s.last = p; s.volume += q;
   if (![buyer, seller].every(u => u === HOUSE || u === PUBLIC)) { s.realVolume = r2((s.realVolume || 0) + cash); s.realTrades = (s.realTrades || 0) + 1; } // traction counts people, not the simulation
   s.seq = (s.seq || 0) + 1;
@@ -277,9 +287,10 @@ export function placeOrder(s, o) {
   const crosses = r => r.side !== o.side && (o.side === 'buy' ? r.price <= o.price : r.price >= o.price);
   const opp = s.orders.filter(crosses).sort((a, b) => (o.side === 'buy' ? a.price - b.price : b.price - a.price) || a.t - b.t);
   if (opp.some(r => r.uid === o.uid)) throw new Error('This would trade with one of your own orders. Cancel that order first.');
+  if (s.status === 'preopen' && o.ioc) throw new Error('Market orders start when trading opens. Use a limit order for the opening auction.');
   o.q0 = o.qty; // the size as placed, so its owner can see how much has filled
+  note(s, { uid: o.uid, kind: 'placed', oid: o.id, side: o.side, qty: o.qty, price: o.price, market: !!o.ioc, ...(o.replaces ? { replaces: o.replaces } : {}), t: o.t });
   if (s.status === 'preopen') {
-    if (o.ioc) throw new Error('Market orders start when trading opens. Use a limit order for the opening auction.');
     s.orders.push(o);
     return { filled: 0, cost: 0, resting: o.qty, cancelled: 0, preopen: true };
   }
@@ -288,11 +299,12 @@ export function placeOrder(s, o) {
     const q = Math.min(o.qty, r.qty);
     if (!q) break;
     const [buyer, seller] = o.side === 'buy' ? [o.uid, r.uid] : [r.uid, o.uid];
-    fill(s, buyer, seller, q, r.price, o.t, [o.uid]);
+    fill(s, buyer, seller, q, r.price, o.t, [o.uid], o.side === 'buy' ? [o.id, r.id] : [r.id, o.id]);
     r.qty -= q; o.qty -= q; filled += q; cost += q * r.price;
   }
   s.orders = s.orders.filter(r => r.qty > 0);
   const cancelled = o.ioc ? o.qty : 0;
+  if (cancelled) noteCancel(s, o, cancelled, 'market', o.t);
   if (o.qty > 0 && !o.ioc) s.orders.push(o);
   if (filled) quoteHouse(s, o.t); // the market maker follows the new last price
   return { filled, cost: r2(cost), resting: o.ioc ? 0 : o.qty, cancelled };
@@ -355,6 +367,7 @@ export function closeCompany(s, reason, now) {
     note(s, { uid, kind: 'closing', qty: h, price: per, amount: amt, realized: r2(amt - (s.basis[uid] || 0)), t: now });
   }
   paid = r2(paid);
+  for (const o of s.orders) noteCancel(s, o, o.qty, 'closed', now);
   Object.assign(s, { cash: r2(s.cash - paid), holders: {}, basis: {}, orders: [], halt: null, status: 'closed', closed: now, closePer: per });
   log(s, 'closed', `Company closed: ${reason}. Every share got ${money(per)} from the business's cash (${money(paid)} in all). Trading has ended.`, now);
   return paid;

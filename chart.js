@@ -1190,6 +1190,7 @@ export function createChart(container, opts = {}) {
     const { x, y } = pos(e), d = drag; drag = null;
     if (d) {
       if (d.k === 'order' && d.price !== d.p0 && isFinite(d.price)) hooks.onOrderMove?.(d.id, d.price);
+      else if (d.k === 'order') hooks.onOrderClick?.(d.id); // a click without a drag: the host opens the order to edit
       if ((d.k === 'edit' || d.k === 'move') && d.pushed) changed();
       if (d.k === 'sep') save('ind', inds);
       cv.style.cursor = cursorAt(x, y);
