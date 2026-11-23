@@ -360,6 +360,13 @@ export function reportQuarter(s, src, costs, verified, note_, now) {
   quoteHouse(s, now);
   return paid;
 }
+// A report with the last quarter's figures (or a quarter of the CX-1's): how the exchange files for the example creators,
+// who have no one to file for them. The same figures always pass the caps, which only grow.
+export function fileAsBefore(s, now) {
+  const qtr = x => Object.fromEntries(Object.entries(x).map(([k, v]) => [k, Math.round(v / 4)]));
+  const q = s.quarters[s.quarters.length - 1] || { sources: qtr(s.sources), costs: qtr(s.costs), verified: s.verified || [] };
+  return reportQuarter(s, { ...q.sources }, { ...q.costs }, [...(q.verified || [])], '', now);
+}
 // The charter's late-filing rule: 30 days after a missed CX-Q, trading halts until the report is filed.
 export function haltIfLate(s, now) {
   const f = filingStatus(s, now);

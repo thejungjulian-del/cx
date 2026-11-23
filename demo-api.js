@@ -51,7 +51,17 @@
       if (x) { a.fired = x.t; a.hit = x.p; db.ledger.push({ id: 'alert-' + a.id, uid: a.uid, ticker: s.ticker, kind: 'alert', op: a.op, target: a.price, price: x.p, qty: 0, amount: 0, t: x.t }); }
     }
   }
+  // The example creators have no one to file for them: each missed quarter is filed on its due date, so a visitor who
+  // comes back months later finds them trading, not halted or bought back.
+  function fileForExamples() {
+    for (const t in db.stocks) {
+      if (db.stocks[t].creatorId) continue;
+      try { for (let f; (f = E.filingStatus(db.stocks[t], Date.now())) && f.overdue;) act(t, s => { E.fileAsBefore(s, f.due); }); }
+      catch (e) { console.warn('CX demo: could not file for ' + t, e); }
+    }
+  }
   function haltLateFilers() { // and two missed reports in a row: the creator must buy back every share
+    fileForExamples();
     for (const t in db.stocks) {
       const f = E.filingStatus(db.stocks[t], Date.now()) || {};
       if (f.missed) act(t, s => { E.buyBackIfMissed(s, Date.now()); });
@@ -62,14 +72,28 @@
   // Prices keep moving while the tab is open: every 5–15 s the simulated outside investors (E.PUBLIC, the accounts the
   // seed's price history uses) send a small market order. It goes through the normal matching engine, so it trades with
   // the house market maker or anyone's resting order, and the market maker requotes, as on the server.
-  function simTrade() {
-    const live = Object.values(db.stocks).filter(s => s.sim && s.status === 'open' && !s.halt);
-    if (document.hidden || !live.length) return;
-    const s = live[Math.floor(Math.random() * live.length)];
+  function simOrder(s, t) {
     const lean = Math.max(-0.05, Math.min(0.05, Math.log(E.modelValue(s) / s.last) / 4)); // a slight pull toward the model value
     const qty = Math.max(1, Math.round(s.float * (0.0005 + 0.004 * Math.random())));
     const side = Math.random() < 0.5 + lean || (s.holders[E.PUBLIC] || 0) < qty ? 'buy' : 'sell';
-    act(s.ticker, x => E.placeOrder(x, { id: newId('o'), uid: E.PUBLIC, side, qty, price: E.marketLimit(x, side), t: Date.now(), ioc: true }));
+    E.placeOrder(s, { id: newId('o'), uid: E.PUBLIC, side, qty, price: E.marketLimit(s, side), t, ioc: true });
+  }
+  const live = () => Object.values(db.stocks).filter(s => s.sim && s.status === 'open' && !s.halt);
+  function simTrade() {
+    const xs = live();
+    if (document.hidden || !xs.length) return;
+    act(xs[Math.floor(Math.random() * xs.length)].ticker, x => { simOrder(x, Date.now()); });
+  }
+  // Trades only happen while a tab is open, so a returning visitor would find every price where they left it. Instead the
+  // trading in between is replayed: an order about every 2 hours per listing, for the last 30 days at most.
+  function catchUp() {
+    const now = Date.now();
+    for (const s of live()) {
+      const xs = db.execs[s.ticker] || [], from = Math.max(xs.length ? xs[xs.length - 1].t : s.opened, now - 30 * E.DAY);
+      if (now - from < 2 * 3600e3) continue;
+      try { act(s.ticker, x => { for (let t = from + Math.random() * 4 * 3600e3; t < now; t += Math.random() * 4 * 3600e3) simOrder(x, t); }); }
+      catch (e) { console.warn('CX demo: could not catch up ' + s.ticker, e); }
+    }
   }
   const simLoop = () => setTimeout(() => { try { simTrade(); } catch (e) { console.warn('CX demo: simulated trade skipped.', e); } simLoop(); }, 5000 + Math.random() * 10000);
 
@@ -79,7 +103,7 @@
     const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations: 210000 }, key, 256);
     return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
   }
-  const pwOk = async (x, pw) => !!x && !!pw && await hashPw(String(pw), x.salt) === x.hash;
+  const pwOk = async (x, pw) => !!x && (!x.hash || (!!pw && await hashPw(String(pw), x.salt) === x.hash)); // a sample account has no password
   const emailOf = (v, u) => {
     const e = String(v || '').trim().toLowerCase();
     if (e.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) fail(400, 'Enter a valid email address.');
@@ -235,7 +259,7 @@
     'POST /api/reset/finish': async ({ body }) => {
       const n = String(body.name || '').trim().toLowerCase(), x = n && Object.values(db.users).find(v => v.name === n || v.email === n), c = x && x.reset;
       if (!c || c.exp < Date.now() || c.tries >= 5) fail(400, 'That code has expired. Send a new one.');
-      if (await hashPw(String(body.code || '').replace(/\D/g, ''), x.salt) !== c.h) { c.tries++; save(); fail(400, c.tries >= 5 ? 'Too many wrong codes. Send a new one.' : 'That code isn’t right. Check the email and try again.'); }
+      if (await hashPw(String(body.code || '').replace(/\D/g, ''), x.salt) !== c.h) { c.tries++; save(); fail(400, c.tries >= 5 ? 'Too many wrong codes. Send a new one.' : 'That code isn’t right. Try again.'); }
       if (String(body.password || '').length < 8) fail(400, 'Use a new password of at least 8 characters.');
       x.salt = hex(16); x.hash = await hashPw(String(body.password), x.salt);
       x.emailOk = true; delete x.reset; delete x.code;
@@ -243,6 +267,14 @@
       return { ok: true };
     },
     'POST /api/logout': () => { db.uid = null; save(); return { ok: true }; },
+    // demo only: an account that's already open, for a visitor who wants to try trading without the sign-up
+    'POST /api/demo/sample': () => {
+      const id = 'u_' + hex(8), now = Date.now();
+      db.users[id] = { id, name: 'guest_' + hex(2), email: null, emailOk: true, salt: hex(16), hash: '', owner: false, created: now, seen: now, onboarded: false,
+        kyc: { first: 'Sample', last: 'Investor', dob: '1995-01-01', country: 'US', state: 'CA', job: 'employed', income: 75000, worth: 75000, exp: 'some', goal: 'support', risk: 'medium', quiz: now, agreed: now, ok: now } };
+      db.uid = id; changed();
+      return {};
+    },
     'POST /api/onboarded': ({ u }) => { if (!u) fail(401, 'Sign in first.'); u.onboarded = true; save(); return {}; },
 
     'POST /api/email/verify': async ({ u, body }) => {
@@ -333,7 +365,9 @@
       const all = Object.values(db.stocks);
       if (all.some(s => s.holders[u.id])) fail(400, 'Sell your shares first. Accounts holding shares can’t be deleted.');
       if (all.some(s => s.orders.some(o => o.uid === u.id) || (s.iois || []).some(b => b.uid === u.id))) fail(400, 'Cancel your open orders and IPO bids first.');
-      if (all.some(s => s.creatorId === u.id)) fail(400, 'This account filed a listing. Ask the exchange to close it first.');
+      const mine = all.filter(s => s.creatorId === u.id); // demo: no exchange to withdraw a filing, so it goes with the account
+      if (mine.some(s => s.status === 'open')) fail(400, 'Close your listed company first, from Creator tools under its chart.');
+      mine.forEach(s => { delete db.stocks[s.ticker]; delete db.execs[s.ticker]; });
       delete db.users[u.id]; db.uid = null;
       db.alerts = db.alerts.filter(a => a.uid !== u.id);
       changed();
@@ -430,6 +464,26 @@
       db.stocks[t] = E.newListing(f, u.id, Date.now());
       return act(t, () => ({ ticker: t, idCode: f.idCode }));
     },
+    // demo only: with no operator here, the visitor stands in for the exchange and moves an IPO one stage on
+    'POST /api/demo/advance': ({ body }) => act(tickerOf(body.ticker), s => {
+      const now = Date.now(), t = s.ticker;
+      if (s.status === 'review') {
+        if (!s.idVerified) E.confirmIdentity(s, now);
+        E.PLATFORMS.filter(k => s.sources[k] > 0).forEach(k => E.verifySource(s, -1, k, now));
+        E.approve(s, now, 3);
+        const [lo, hi] = s.range, f = s.float; // simulated outside demand, as in the seed: the house takes 20%, investors bid the rest
+        s.iois.push({ id: 'dh', uid: E.HOUSE, qty: Math.round(f * 0.2), price: hi, t: now }, { id: 'dp1', uid: E.PUBLIC, qty: Math.round(f * 0.6), price: hi, t: now },
+          { id: 'dp2', uid: E.PUBLIC, qty: Math.round(f * 0.4), price: E.r2((lo + hi) / 2), t: now });
+        s.sim = true;
+        return { msg: `${t} approved. Bids are open from ${E.money(lo)} to ${E.money(hi)}.` };
+      }
+      if (s.status === 'roadshow') {
+        if (!s.iois.some(b => b.uid === E.HOUSE)) s.iois.push({ id: 'dh', uid: E.HOUSE, qty: Math.round(s.float * 0.2), price: s.range[1], t: now }); // the market maker needs shares to sell once trading opens
+        const r = E.priceIPO(s, now); return { msg: r ? `${t} priced at ${E.money(r.price)}. ${r.sold.toLocaleString('en-US')} shares allocated.` : `${t} withdrawn: not enough demand.` }; }
+      if (s.status === 'preopen') { E.openTrading(s, now); s.sim = true; return { msg: `${t} is trading.`, open: true }; }
+      if (s.status === 'open' && !s.creatorId) { E.fileAsBefore(s, now); const q = s.quarters[s.quarters.length - 1]; return { msg: `${t} filed Q${s.quarters.length}: ${E.money(q.profit)} profit, a ${E.money(q.per)} dividend a share.` }; }
+      fail(400, `${t} has no IPO step left to skip.`);
+    }),
     'POST /api/report': ({ u, body }) => {
       signedIn(u);
       return act(tickerOf(body.ticker), s => {
@@ -490,6 +544,7 @@
       save();
     }
     for (const [t, s] of Object.entries(db.stocks)) if (!s.daily) for (const x of db.execs[t] || []) E.tally(s, x.t, x.q, E.r2(x.q * x.p)); // trading by day for the buyback price, as on the server
+    fileForExamples(); catchUp(); // a returning visitor: reports filed on time, then the trading since the last visit
     haltLateFilers(); setInterval(haltLateFilers, 3600e3); // the charter's late-filing rule, as on the server
     simLoop();
   })();

@@ -142,8 +142,8 @@ a{color:var(--link)}
 .ipoitem{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:8px 10px;margin-bottom:6px;cursor:pointer}
 .ipoitem:hover{border-color:var(--line-2)}
 .ipoitem[aria-current="true"]{border-color:var(--accent)}
-.steps{display:flex;gap:4px;flex-wrap:wrap;margin:0;padding:0;list-style:none}
-.steps li{flex:1 1 90px;padding:6px 8px;border-radius:4px;background:var(--bg);color:var(--muted);font-size:11.5px;font-weight:600;border-top:2px solid var(--line-2)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:4px;margin:0;padding:0;list-style:none} /* the four stages stay on one row in a narrow card */
+.steps li{padding:6px 8px;border-radius:4px;background:var(--bg);color:var(--muted);font-size:11.5px;font-weight:600;border-top:2px solid var(--line-2)}
 .steps li.done{color:var(--ink-2);border-top-color:var(--up)}
 .steps li.now{color:var(--ink);border-top-color:var(--accent);background:color-mix(in srgb,var(--accent-2) 10%,transparent)}
 .meter{height:10px;border-radius:5px;background:var(--bg);overflow:hidden;position:relative}
@@ -339,6 +339,7 @@ body{-webkit-font-smoothing:antialiased}
 @media (max-width:1100px){ .about{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .about .tlw{grid-column:1 / -1} }
 @media (max-width:600px){
   .feed{order:1;margin-left:auto} .feed span{display:none}
+  .acct .who{display:none}
   .about{grid-template-columns:minmax(0,1fr)}
   .tl li{grid-template-columns:76px minmax(0,1fr)} .tl li .fcode{display:none}
 }
@@ -458,6 +459,7 @@ body{-webkit-font-smoothing:antialiased}
 @media (max-width:900px){ /* small screens: one column, the panels under the chart */
   .app{height:auto;min-height:100%}
   .topbar{overflow-x:auto}
+  .topbar>#menu-btn,.topbar>.logo,.topbar>#sym-btn{order:-2} .topbar>#acct,.topbar>#trade-btn{order:-1} .acct{margin-left:0} /* Sign in and Trade stay on screen; the rest of the toolbar scrolls */
   .body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"tools" "chart" "range" "rbar" "rpanel" "bottom"}
   .body.paged{grid-template-rows:auto;grid-template-areas:"rbar" "rpanel" "page"}
   .tvtools.tv-tb{flex-direction:row;width:auto;padding:2px 4px;overflow-x:auto;overflow-y:hidden} /* the drawing tools become a strip above the chart */
@@ -507,7 +509,7 @@ body{-webkit-font-smoothing:antialiased}
     <button class="tb ic" type="button" id="set-btn" title="Chart settings" aria-label="Chart settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
     <button class="tb ic" type="button" id="full-btn" title="Fullscreen" aria-label="Fullscreen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <button class="tb ic" type="button" id="snap-btn" title="Take a snapshot (Alt+S)" aria-label="Take a snapshot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 100-8 4 4 0 000 8z"/></svg></button>
-    <button class="go tradebtn" type="button" id="trade-btn" data-w="order">Trade</button>
+    <button class="go tradebtn" type="button" id="trade-btn">Trade</button>
   </header>
   <div class="tvmenu" id="menu" role="menu" aria-label="Menu" hidden>
     <button role="menuitem" data-view="trade">Chart</button>
@@ -842,6 +844,7 @@ body{-webkit-font-smoothing:antialiased}
     <p class="hint au-forgot" id="au-forgot-row"><button type="button" class="linkish" id="au-forgot">Forgot password?</button></p>
     <p class="hint" id="au-terms">Play money only. <a href="legal.html" target="_blank">Terms, privacy and risks</a>.</p>
     <p class="hint">Demo: runs in your browser with play money. Nothing you enter is sent anywhere.</p>
+    <button type="button" class="ghost" data-demo-sample style="width:100%;padding:10px;margin-bottom:8px">Skip sign-up: try it with a sample account</button>
     <p class="err" id="au-err" hidden></p>
     <button class="go" id="au-go" type="submit" value="go">Sign in</button>
     <p class="hint au-alt"><span id="au-alt-t">New here?</span> <button class="linkish" id="au-switch" type="button">Create an account</button></p>
@@ -1547,7 +1550,7 @@ function renderFilings(s) {
   }
   s.events.filter(e => !['report', 'filing'].includes(e.kind)).forEach(e => docs.push({ t: e.t, form: e.kind === 'event' ? 'CX-E' : 'Notice', title: e.text, body: `<p>${esc(e.text)}</p>` }));
   const open = new Set($$('#b-filings details[open]').map(d => d.dataset.k));
-  $('#b-filings').innerHTML = docs.sort((a, b) => b.t - a.t).map(d => { const k = d.form + d.t; return `<details class="filing" data-k="${k}" ${open.has(k) ? 'open' : ''}><summary><time>${day(d.t)}</time><span class="fcode">${d.form}</span><span>${esc(d.title)}</span></summary><div class="fdoc">${d.body}</div></details>`; }).join('');
+  $('#b-filings').innerHTML = demoSkip(s) + docs.sort((a, b) => b.t - a.t).map(d => { const k = d.form + d.t; return `<details class="filing" data-k="${k}" ${open.has(k) ? 'open' : ''}><summary><time>${day(d.t)}</time><span class="fcode">${d.form}</span><span>${esc(d.title)}</span></summary><div class="fdoc">${d.body}</div></details>`; }).join('');
 }
 // History: your fills, cash movements, IPO results and dividends, read from your ledger (its newest 200 entries).
 let hView = 'orders', hSym = '', hShown = null;
@@ -1692,7 +1695,7 @@ function prefillReport() {
 }
 
 /* ---------- IPO center ---------- */
-const STAGES = [['review', 'Filed (CX-1)'], ['roadshow', 'Roadshow & book'], ['preopen', 'Priced'], ['open', 'Trading']];
+const STAGES = [['review', 'Filed (CX‑1)'], ['roadshow', 'Roadshow & book'], ['preopen', 'Priced'], ['open', 'Trading']];
 const steps = s => { const si = STAGES.findIndex(([k]) => k === s.status); return `<ol class="steps">${STAGES.map(([, l], i) => `<li class="${si < 0 ? '' : i < si ? 'done' : i === si ? 'now' : ''}">${l}</li>`).join('')}</ol>`; };
 function renderIPO() {
   const lanes = [['review', 'Filed, in review'], ['roadshow', 'Roadshow · taking bids'], ['preopen', 'Priced · opening auction next'], ['open', 'Listed'], ['withdrawn', 'Withdrawn or rejected']];
@@ -1731,12 +1734,23 @@ function renderIPO() {
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="ghost" data-act="open" data-t="${esc(s.ticker)}">Trade ${esc(s.ticker)} on the chart</button>${owner ? `<button type="button" class="go" data-act="open-trading" data-t="${esc(s.ticker)}">Run the opening auction</button>` : ''}</div>`
         : `<button type="button" class="ghost" data-act="open" data-t="${esc(s.ticker)}">Open the ${esc(s.ticker)} chart</button>`}`;
   }
-  if (s.status === 'withdrawn' || s.status === 'rejected') body = `<p>${esc((s.events[s.events.length - 1] || {}).text || '')}</p>`;
+  if (['withdrawn', 'rejected', 'closed'].includes(s.status)) body = `<p>${esc((s.events[s.events.length - 1] || {}).text || '')}</p>`;
   $('#ipo-detail').innerHTML = `<div class="card">
     <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline"><div><span class="sym" style="font-size:18px">${esc(s.ticker)}</span> <b style="font-size:16px">${esc(s.name)}</b> <span class="muted">@${esc(s.handle)} · ${esc(earnsOn(s))}</span></div>
       <span class="muted">${s.status === 'open' || s.status === 'preopen' ? 'Sold' : 'Selling'} ${pct(s.float / s.shares, false)} of the company · ${big(annualRevenue(s))} revenue · ${big(annualProfit(s))} profit a year</span></div>
-    ${steps(s)}${body}</div>`;
+    ${steps(s)}${body}${demoSkip(s)}</div>`;
 }
+const SKIP = { review: 'approve it now', roadshow: 'close the book and price it', preopen: 'open trading', open: 'file next quarter’s earnings' };
+const demoSkip = s => SKIP[s.status] && !(s.status === 'open' && s.creatorId) ? '<p class="hint" style="margin:10px"><button type="button" class="ghost" data-demo-skip="' + esc(s.ticker) + '">Skip ahead: ' + SKIP[s.status] + '</button> Demo shortcut: no waiting for the exchange or the calendar.</p>' : '';
+document.addEventListener('click', async e => { // a sample account: already open, straight to the welcome
+  if (!e.target.closest('[data-demo-sample]')) return;
+  if (await run(() => api('/api/demo/sample', {}))) { $('#auth').close(); await refresh(); }
+});
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-demo-skip]'); if (!b) return;
+  const t = b.dataset.demoSkip, r = await run(() => api('/api/demo/advance', { ticker: t }), r => r.msg);
+  if (r && r.open) select(t);
+});
 function curve(s) {
   const W = 560, H = 170, L = 52, B = 24, cap = r2(s.range[1] * MAX_OVER_RANGE), lo = s.range[0] * 0.98, hi = cap * 1.01;
   const prices = [...new Set(s.iois.map(b => b.price))].sort((a, b) => a - b);
@@ -1745,10 +1759,10 @@ function curve(s) {
   let path = `M${x(lo)},${y(demandAt(s, lo))}`, prevQ = demandAt(s, lo);
   for (const p of prices) { path += `L${x(p)},${y(prevQ)}`; prevQ = demandAt(s, p + 0.001); path += `L${x(p)},${y(prevQ)}`; }
   path += `L${x(hi)},${y(prevQ)}`;
-  const tick = (p, t) => `<line x1="${x(p)}" x2="${x(p)}" y1="12" y2="${H - B}" stroke="var(--line-2)"/><text x="${x(p)}" y="${H - 8}" text-anchor="middle">${t} ${p.toFixed(2)}</text>`;
+  const tick = (p, t, a = 'middle') => `<line x1="${x(p)}" x2="${x(p)}" y1="12" y2="${H - B}" stroke="var(--line-2)"/><text x="${x(p)}" y="${H - 8}" text-anchor="${a}">${t} ${p.toFixed(2)}</text>`;
   return `<svg id="curve" viewBox="0 0 ${W} ${H}" role="img" aria-label="Shares bid at or above each price">
     <rect x="${x(s.range[0])}" y="12" width="${x(s.range[1]) - x(s.range[0])}" height="${H - B - 12}" fill="var(--accent)" opacity=".08"/>
-    ${tick(s.range[0], 'Low')}${tick(s.range[1], 'High')}${tick(cap, 'Cap')}
+    ${tick(s.range[0], 'Low')}${tick(s.range[1], 'High')}${tick(cap, 'Cap', 'end')}
     <line x1="${L}" x2="${W - 10}" y1="${y(s.float)}" y2="${y(s.float)}" stroke="var(--warn)" stroke-dasharray="4 4"/>
     <text x="${L - 6}" y="${y(s.float) + 4}" text-anchor="end">${num(s.float)}</text><text x="${W - 12}" y="${y(s.float) - 6}" text-anchor="end">Shares offered</text>
     <path d="${path}" fill="none" stroke="var(--up)" stroke-width="2"/>
@@ -1989,10 +2003,10 @@ function renderCreator() {
     if (s.status === 'withdrawn' || s.status === 'rejected') next = esc((s.events[s.events.length - 1] || {}).text || '');
     const kv = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
     return `<div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><span><span class="sym" style="font-size:17px">${esc(s.ticker)}</span> <b>${esc(s.name)}</b> <span class="muted">@${esc(s.handle)}</span></span><span>${s.idVerified ? '<span class="tag up">Identity confirmed</span>' : '<span class="tag warn">Identity pending</span>'}</span></div>
-      ${steps(s)}<div class="next ${warn ? 'warn' : ''}">${next}</div>
+      ${steps(s)}<div class="next ${warn ? 'warn' : ''}">${next}</div>${demoSkip(s)}
       <dl class="kv">${kv('Revenue/yr', big(annualRevenue(s)))}${kv('Profit/yr', big(annualProfit(s)))}${kv('Verified', pct(1 - revenueMix(s).unverified, false))}${kv('Business cash', big(s.cash || 0))}${kv('You own', s.creatorShares ? pct(stakeOf(s), false) : pct(1 - s.float / s.shares, false))}${kv('Shareholders', num(s.holderCount))}${kv('Reports filed', s.quarters.length)}</dl>
       <div><b>Revenue proof</b> <span class="muted">· only you and the exchange can open these</span>${evidenceList(s.ticker)}
-        <label class="ghost" style="margin-top:6px;cursor:pointer">Upload payout statement or contract<input type="file" data-upload="${esc(s.ticker)}" accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.txt" hidden></label></div>
+        <label class="ghost" hidden style="margin-top:6px;cursor:pointer">Upload payout statement or contract<input type="file" data-upload="${esc(s.ticker)}" accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.txt" hidden></label></div>
       ${s.status === 'open' ? `<div><button class="go" type="button" data-file="${esc(s.ticker)}">File this quarter's earnings (CX-Q)</button></div>` : ''}</div>`;
   }).join('');
   mine.filter(s => evid[s.ticker] === undefined).forEach(s => loadEvidence(s.ticker).then(() => view === 'creator' && renderCreator()));
@@ -2227,6 +2241,7 @@ function openOrder(sd, type, price) {
   if (price) { $('#t-price').value = price.toFixed(2); updateSummary(); }
   $('#t-qty').focus(); $('#t-qty').select();
 }
+$('#trade-btn').addEventListener('click', () => openOrder()); // fresh price every time, not the one from page load
 // a price alert, at the price under the cursor (or the one given), else the last price
 function openAlert(price) {
   const s = bySym(sel); if (!s) return toast('Pick a creator first.', true);
@@ -2569,7 +2584,7 @@ const OB = {
   email: () => `<h2>Confirm your email</h2>
     <p class="hint">${meU.email ? `CX emails a 6-digit code to <b>${esc(meU.email)}</b>. This demo sends nothing, so the code shows here instead.` : 'Add your email address below, and we’ll send you a code.'}</p>
     ${ob.code ? `<p class="next">Your code: <span class="code">${ob.code}</span></p>` : ''}
-    <div class="fld" style="margin-top:12px"><label for="ob-code">6-digit code</label><input id="ob-code" class="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></div>
+    <div class="fld" style="margin-top:12px"><label for="ob-code">6-digit code</label><input id="ob-code" class="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" value="${ob.code || ''}"></div>
     <p class="hint" style="margin-top:10px">${ob.note ? esc(ob.note) + ' ' : ''}<button type="button" class="linkish" data-ob-resend>Send a new code</button></p>
     <details class="hint" style="margin-top:6px"><summary>Wrong email?</summary><div class="f2" style="align-items:end;margin-top:8px">${fld('mail', 'New email', 'type="email" autocomplete="email" maxlength="120"')}<button type="button" class="ghost" data-ob-resend="mail">Send the code there</button></div></details>`,
   about: () => `<h2>About you</h2><p class="hint">What any brokerage asks. Your name and birthday confirm who you are (18 or older); the money answers set your yearly crowdfunding limit.</p>
@@ -2799,7 +2814,7 @@ let rsSent = false;
 function resetStep(sent, note) {
   rsSent = sent; $('#rs-step2').hidden = !sent; $('#rs-resend-w').hidden = !sent; $('#rs-err').hidden = true;
   $('#rs-go').textContent = sent ? 'Set new password' : 'Send code';
-  $('#rs-sub').innerHTML = note || 'Enter your username or the email on your account. We’ll email you a 6-digit code.';
+  $('#rs-sub').innerHTML = note || 'Enter your username or the email on your account. The demo shows you a 6-digit code.';
 }
 $('#au-forgot').addEventListener('click', () => {
   resetStep(false); $('#rs-name').value = $('#au-name').value; $('#rs-code').value = ''; $('#rs-pw').value = '';
@@ -2907,6 +2922,7 @@ document.addEventListener('change', async e => {
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'ioi') return;
   e.preventDefault();
+  document.activeElement.blur(); // focus inside the bid form pauses re-renders (see render), so the new bid would never show
   await run(() => api('/api/ioi', { ticker: ipoSel, qty: Number($('#i-qty').value), price: Number($('#i-price').value), rid: rid() }), `Bid placed for ${ipoSel}.`);
 });
 $('#trade').addEventListener('submit', async e => {
