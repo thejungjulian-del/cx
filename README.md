@@ -2,7 +2,7 @@
 
 A demo of Creator Exchange (CX), a play-money stock exchange where every creator is a company. Fans buy shares at the IPO, trade them on an order book and get part of the profit every quarter.
 
-Try it: https://thejungjulian-del.github.io/cx/
+Try it: https://creatorexchange.trade/
 
 ## How the demo works
 

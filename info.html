@@ -19,11 +19,6 @@ a{color:var(--fg);text-decoration:underline;text-decoration-color:#55555c;text-u
 a:hover{text-decoration-color:var(--fg)}
 :focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 .wrap{max-width:1040px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
-header{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:14px}
-.mark{font:700 17px var(--serif);text-decoration:none;display:flex;align-items:center;gap:10px}
-.mark span{font:500 9px var(--sans);letter-spacing:.34em;color:var(--muted)}
-nav{display:flex;gap:22px;flex-wrap:wrap} nav a{font-size:14px;color:var(--muted);text-decoration:none} nav a:hover{color:var(--fg)}
 .eyebrow{font:500 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
 h1{font:400 clamp(40px,7vw,76px)/1.04 var(--serif);margin:0;letter-spacing:-.01em;text-wrap:balance}
 h2{font:400 clamp(28px,4vw,40px)/1.12 var(--serif);margin:0 0 18px;text-wrap:balance}
@@ -32,10 +27,6 @@ p{margin:0 0 12px;max-width:68ch} .muted{color:var(--muted)}
 section{padding-block:72px;border-top:1px solid var(--line)}
 .hero{padding-block:96px 72px;border-top:0}
 .hero .lede{font-size:clamp(17px,2vw,20px);color:var(--muted);margin-top:20px;max-width:52ch}
-.btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
-.btn{display:inline-flex;align-items:center;gap:14px;border:1px solid #e8e8ea;border-radius:4px;padding:12px 18px;text-decoration:none;font-weight:600;font-size:15px}
-.btn span{font:400 13px var(--mono);color:var(--muted)}
-.btn.solid{background:var(--fg);color:#000} .btn.solid span{color:#333}
 .inshort{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:22px 24px;margin-top:44px}
 .inshort ol{margin:0;padding:0;list-style:none;display:grid;gap:10px}
 .inshort li{display:grid;grid-template-columns:28px 1fr;font-size:17px}
@@ -71,7 +62,6 @@ tr.hl td{color:#fff;font-weight:600} tr.hl td:first-child{font-family:var(--seri
 footer{border-top:1px solid var(--line);padding-block:28px 40px;font:400 12px var(--mono);color:var(--dim)}
 footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (max-width:760px){
-  nav{display:none}
   .stats{grid-template-columns:1fr} .stat+.stat{border-left:0;border-top:1px solid var(--line);padding-left:0}
   .cols,.contact{grid-template-columns:1fr}
   .year{grid-template-columns:1fr 1fr;row-gap:18px} .year div:nth-child(3){padding-left:0;border-left:0} .year div:nth-child(3)::before{left:0}
@@ -80,23 +70,30 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
 .stock td:first-child{color:var(--muted)} .stock td:nth-child(2){font-weight:500}
+.strip{border-bottom:1px solid var(--line);font-size:12.5px;padding-block:14px}
+.strip .wrap{display:flex;align-items:center;gap:22px}
+.strip a{color:var(--muted);text-decoration:none} .strip a:hover{color:var(--ink)}
+.strip .brand{display:flex;align-items:center;gap:10px;color:var(--ink);margin-right:auto}
+.strip .brand img{width:24px;height:24px}
+.strip .brand b{font:700 18px/1 var(--serif)}
+.strip{--ink:var(--fg)} .strip .wrap{max-width:1040px}
 </style>
+<style>
+.cxd-bar{position:relative;z-index:5;box-sizing:border-box;height:24px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;background:#000;color:#878d97;border-bottom:1px solid #1b1f26;font:500 11px/1 "Inter",-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.04em;white-space:nowrap;overflow:hidden}
+.cxd-bar button{all:unset;cursor:pointer;color:#b4b9c2;text-decoration:underline;text-decoration-color:#2a2f37;text-underline-offset:3px}
+.cxd-bar button:hover{color:#eceef1} .cxd-bar button:focus-visible{outline:1px solid #eceef1;outline-offset:2px}
+@media print{.cxd-bar{display:none}}
+</style>
+<script src="demo-api.js"></script>
 </head>
 <body>
-<header><div class="wrap">
-  <a class="mark" href="index.html" aria-label="Creator Exchange home">CX<span>CREATOR EXCHANGE</span></a>
-  <nav aria-label="Sections"><a href="index.html">Home</a><a href="markets.html">CX Markets</a><a href="#how">How it works</a><a href="#compare">Compare</a><a href="CX-Deck.pdf">Deck</a></nav>
-</div></header>
+<div class="cxd-bar" role="note"><span>Demo · runs in your browser · play money</span><span aria-hidden="true">·</span><button type="button" data-demo-reset>Reset demo</button></div>
+<div class="strip"><div class="wrap"><a class="brand" href="./" aria-label="CX home"><img src="logo.svg" alt=""><b>CX</b></a><a href="markets.html">Markets</a></div></div>
 <main id="top">
 <section class="hero"><div class="wrap">
   <p class="eyebrow">More information · Creator Exchange</p>
   <h1>The stock market for creators.</h1>
   <p class="lede">Fans buy shares in a creator's business and get a dividend from its profit every quarter. Creators keep control and can buy their shares back anytime.</p>
-  <div class="btns">
-    <a class="btn solid" href="markets.html">Try CX Markets <span>play money</span></a>
-    <a class="btn" href="CX-Deck.pdf">Read the deck <span>PDF</span></a>
-    <a class="btn" href="CX-Overview.pdf">5-page overview <span>PDF</span></a>
-  </div>
   <div class="inshort">
     <p class="eyebrow">In short</p>
     <ol>
@@ -117,7 +114,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="stat"><b>4%</b><span>of creators earn more than $100,000 a year</span></div>
     <div class="stat"><b>46%</b><span>of full-time creators earned under $1,000 in 2022</span></div>
   </div>
-  <p class="src"><a href="https://www.goldmansachs.com/insights/articles/the-creator-economy-could-approach-half-a-trillion-dollars-by-2027">Goldman Sachs Research, 2023</a> · <a href="https://techcrunch.com/2022/04/20/linktree-creator-economy-report-research/">Linktree survey via TechCrunch, 2022</a></p>
+  <p class="src">Goldman Sachs Research, 2023 · Linktree survey via TechCrunch, 2022</p>
   <p style="margin-top:20px">Banks don't lend against views. So a creator who wants to grow pays for it themselves or gives a studio part of the rights. Fans already spend on memberships, merch and crowdfunding, but they get rewards, never a return.</p>
 </div></section>
 
@@ -174,14 +171,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <div class="tw"><table>
     <tr><th>Option</th><th>What fans get</th><th>How it ends</th><th>Who it's for</th></tr>
     <tr class="hl"><td>CX</td><td>Dividends from the profit of the creator's whole business</td><td>Creator buys back, or fans sell</td><td>Any creator</td></tr>
-    <tr><td><a href="https://gigastar.io">GigaStar</a></td><td>A cut of a channel's YouTube revenue</td><td>No end date</td><td>YouTube channels</td></tr>
+    <tr><td>GigaStar</td><td>A cut of a channel's YouTube revenue</td><td>No end date</td><td>YouTube channels</td></tr>
     <tr><td>Kickstarter, Patreon</td><td>Rewards or access</td><td>No return</td><td>Anyone</td></tr>
-    <tr><td><a href="https://techcrunch.com/2022/02/16/spotter-invest-youtubers-back-catalog/">Spotter</a></td><td>Nothing, Spotter pays for back-catalog ad revenue</td><td>At an agreed return</td><td>Large YouTube channels</td></tr>
-    <tr><td><a href="https://www.adweek.com/dealroom/slow-ventures-invests-creators/">Slow Creator Fund</a></td><td>Nothing, it writes $1–3M checks</td><td>Equity</td><td>Top creators</td></tr>
+    <tr><td>Spotter</td><td>Nothing, Spotter pays for back-catalog ad revenue</td><td>At an agreed return</td><td>Large YouTube channels</td></tr>
+    <tr><td>Slow Creator Fund</td><td>Nothing, it writes $1–3M checks</td><td>Equity</td><td>Top creators</td></tr>
   </table></div>
   <div class="cols" style="margin-top:36px">
     <div><p class="eyebrow">The legal path</p><p>Every raise would run through an SEC-registered Regulation Crowdfunding portal, which handles investor checks, limits and escrow. The creator's company is set up as a corporation, so fans get a normal dividend tax form instead of partnership tax forms. The creator's own pay is capped in the charter, so profit can't be moved into salary. A lawyer will confirm the setup. Shares can't be resold for 12 months. After that, trading runs through a registered partner.</p></div>
-    <div><p class="eyebrow">What's built</p><p>A full play-money exchange. It has an order book, IPO auctions, quarterly filings and dividends, creator buybacks, a brokerage-style account opening with a risk quiz, and automated tests that click through every trade. <a href="markets.html">Try it.</a></p></div>
+    <div><p class="eyebrow">What's built</p><p>A full play-money exchange. It has an order book, IPO auctions, quarterly filings and dividends, creator buybacks, a brokerage-style account opening with a risk quiz, and automated tests that click through every trade.</p></div>
   </div>
 </div></section>
 
@@ -213,7 +210,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="card"><h3>Mentors</h3><p class="muted">Know securities law, crowdfunding or the creator business? We'd value 20 minutes of advice.</p></div>
     <div class="card"><h3>Investors</h3><p class="muted">We'd love your feedback on the model before we raise.</p></div>
   </div>
-  <p style="margin-top:24px">Email Julian at <a class="email" href="mailto:thejungjulian@gmail.com">thejungjulian@gmail.com</a></p>
+  <p style="margin-top:24px">Email Julian Jung to get in touch.</p>
 </div></section>
 </main>
 <footer><div class="wrap">
