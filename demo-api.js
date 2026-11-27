@@ -97,6 +97,15 @@
   }
   const simLoop = () => setTimeout(() => { try { simTrade(); } catch (e) { console.warn('CX demo: simulated trade skipped.', e); } simLoop(); }, 5000 + Math.random() * 10000);
 
+  // An approved IPO gets simulated outside demand, as in the seed (the house takes 20%, investors bid the rest), so it can price
+  // instead of being withdrawn for lack of bids: the demo has one visitor with $10,000.
+  function outsideBids(s, now) {
+    const [lo, hi] = s.range, f = s.float;
+    s.iois.push({ id: 'dh', uid: E.HOUSE, qty: Math.round(f * 0.2), price: hi, t: now }, { id: 'dp1', uid: E.PUBLIC, qty: Math.round(f * 0.6), price: hi, t: now },
+      { id: 'dp2', uid: E.PUBLIC, qty: Math.round(f * 0.4), price: E.r2((lo + hi) / 2), t: now });
+    s.sim = true;
+  }
+
   /* ---------- accounts ---------- */
   async function hashPw(pw, salt) { // PBKDF2-SHA256; passwords and email codes are never stored as typed
     const enc = new TextEncoder(), key = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
@@ -113,7 +122,7 @@
   const approved = u => !!(u.emailOk && u.kyc && u.kyc.ok);
   function signedIn(u) { if (!u) fail(401, 'Sign in to do that.'); }
   function ready(u) { signedIn(u); if (!approved(u)) fail(403, 'Finish opening your account first.'); }
-  function owner(u) { signedIn(u); if (!u.owner) fail(403, 'Only the exchange can do that.'); } // the demo visitor is never the operator
+  function owner(u) { signedIn(u); if (!u.owner) fail(403, 'Only the exchange can do that.'); } // a demo visitor becomes the operator by opening the Exchange desk
   async function sendCode(u, key = 'code') { // no email in the demo: the code comes back to the page, as the server does on its own computer
     const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1e6).padStart(6, '0');
     u[key] = { h: await hashPw(code, u.salt), exp: Date.now() + 15 * 60e3, tries: 0 }; save();
@@ -175,7 +184,7 @@
         firsts: { trade: mine.some(e => e.kind === 'buy' || e.kind === 'sell'), bid: mine.some(e => e.kind === 'ipo') || all.some(s => (s.iois || []).some(b => b.uid === u.id)), payout: mine.some(e => e.kind === 'payout') } } : null,
       stocks: all.map(s => publicStock(s, me, u && u.owner)),
       leaders: [...people, ...bots].sort((a, b) => b.worth - a.worth),
-      earned: null,
+      earned: u && u.owner ? { trading: E.r2(all.reduce((a, s) => a + s.fees, 0)), listing: E.r2(all.reduce((a, s) => a + (s.simIPO ? 0 : s.listingFees), 0)), users: Object.keys(db.users).length } : null, // as server.js
     };
   }
 
@@ -225,7 +234,7 @@
       }
       return { ok: true };
     },
-    'GET /api/waitlist': ({ u }) => owner(u),
+    'GET /api/waitlist': ({ u }) => { owner(u); return { rows: db.waitlist }; }, // what was typed on this browser's home page
     'GET /api/stats': () => {
       const all = Object.values(db.stocks), real = all.filter(s => s.creatorId), roles = {};
       for (const w of db.waitlist) roles[w.role] = (roles[w.role] || 0) + 1;
@@ -275,6 +284,8 @@
       db.uid = id; changed();
       return {};
     },
+    // demo only: any visitor can sit in the exchange operator's seat (the Exchange desk), and leave it again
+    'POST /api/demo/operator': ({ u, body }) => { signedIn(u); u.owner = body.on === true; changed(); return {}; },
     'POST /api/onboarded': ({ u }) => { if (!u) fail(401, 'Sign in first.'); u.onboarded = true; save(); return {}; },
 
     'POST /api/email/verify': async ({ u, body }) => {
@@ -448,7 +459,7 @@
       return {};
     },
 
-    // creators (a filing waits in review: only the exchange operator approves, and the demo has none)
+    // creators (a filing waits in review until the exchange operator approves it: from the Exchange desk, or the demo's skip-ahead)
     'POST /api/apply': ({ u, body }) => {
       ready(u);
       const t = tickerOf(body.ticker);
@@ -470,12 +481,8 @@
       if (s.status === 'review') {
         if (!s.idVerified) E.confirmIdentity(s, now);
         E.PLATFORMS.filter(k => s.sources[k] > 0).forEach(k => E.verifySource(s, -1, k, now));
-        E.approve(s, now, 3);
-        const [lo, hi] = s.range, f = s.float; // simulated outside demand, as in the seed: the house takes 20%, investors bid the rest
-        s.iois.push({ id: 'dh', uid: E.HOUSE, qty: Math.round(f * 0.2), price: hi, t: now }, { id: 'dp1', uid: E.PUBLIC, qty: Math.round(f * 0.6), price: hi, t: now },
-          { id: 'dp2', uid: E.PUBLIC, qty: Math.round(f * 0.4), price: E.r2((lo + hi) / 2), t: now });
-        s.sim = true;
-        return { msg: `${t} approved. Bids are open from ${E.money(lo)} to ${E.money(hi)}.` };
+        E.approve(s, now, 3); outsideBids(s, now);
+        return { msg: `${t} approved. Bids are open from ${E.money(s.range[0])} to ${E.money(s.range[1])}.` };
       }
       if (s.status === 'roadshow') {
         if (!s.iois.some(b => b.uid === E.HOUSE)) s.iois.push({ id: 'dh', uid: E.HOUSE, qty: Math.round(s.float * 0.2), price: s.range[1], t: now }); // the market maker needs shares to sell once trading opens
@@ -506,10 +513,10 @@
     },
     'POST /api/evidence': () => fail(400, 'File uploads are turned off in this demo.'),
 
-    // the exchange operator's desk: nobody in the demo is the operator
+    // the exchange operator's desk: a demo visitor takes the operator's seat by opening it
     'POST /api/verify': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => E.verifySource(s, Number(body.q), String(body.key), Date.now())); },
     'POST /api/confirm-id': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => E.confirmIdentity(s, Date.now())); },
-    'POST /api/approve': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => E.approve(s, Date.now(), Math.max(1, Math.min(14, Number(body.days) || 3)))); },
+    'POST /api/approve': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => { E.approve(s, Date.now(), Math.max(1, Math.min(14, Number(body.days) || 3))); outsideBids(s, Date.now()); }); },
     'POST /api/reject': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => E.reject(s, String(body.reason || 'Does not meet the listing standards').slice(0, 120), Date.now())); },
     'POST /api/price': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => E.priceIPO(s, Date.now())); },
     'POST /api/open': ({ u, body }) => { owner(u); return act(tickerOf(body.ticker), s => E.openTrading(s, Date.now())); },

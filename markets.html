@@ -816,7 +816,7 @@ body{-webkit-font-smoothing:antialiased}
 
     <section class="page" id="v-desk" hidden>
       <h1>Exchange desk</h1>
-      <p class="lede">Only you see this. Review applications, confirm identities, verify revenue, run IPOs, watch filings and the ledger.</p>
+      <p class="lede">Demo: you’re the exchange operator. <button type="button" class="linkish" data-demo-operator>Back to a regular account</button><br>Review applications, confirm identities, verify revenue, run IPOs, watch filings and the ledger.</p>
       <div class="cols2" id="desk-rev"></div>
       <div class="f2" style="max-width:560px;margin-top:14px">
         <div class="fld"><label for="desk-days">Roadshow length when approving (days)</label><input id="desk-days" type="number" min="1" max="14" value="3"></div>
@@ -827,7 +827,7 @@ body{-webkit-font-smoothing:antialiased}
       <h2>Verification queue</h2><table class="grid"><thead><tr><th>Symbol</th><th>Filing</th><th>Source</th><th class="n">Amount</th><th></th></tr></thead><tbody id="desk-verify"></tbody></table>
       <h2>Ledger checks</h2><div id="desk-integrity"></div>
       <h2>Market makers</h2><table class="grid"><thead><tr><th>Symbol</th><th class="n">Budget</th><th class="n">Cash left</th><th class="n">Shares held</th><th class="n">Profit or loss</th></tr></thead><tbody id="desk-mm"></tbody></table>
-      <h2>CX Research data</h2><div class="card" id="desk-research"></div>
+      <h2 hidden>CX Research data</h2><div class="card" id="desk-research" hidden></div>
       <h2>Waitlist</h2><div class="card" id="desk-wait"></div>
     </section>
   </div>
@@ -1241,7 +1241,7 @@ async function cancelOrder(id) {
 
 /* ---------- render ---------- */
 function render() {
-  $('#desk-btn').hidden = !owner;
+  $('#desk-btn').hidden = !meU;
   $$('.need-user').forEach(b => (b.hidden = !meU));
   renderAcct(); renderSymbols(); renderPanel();
   // a live update shouldn't wipe a half-typed IPO bid
@@ -1749,7 +1749,12 @@ document.addEventListener('click', async e => { // a sample account: already ope
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-demo-skip]'); if (!b) return;
   const t = b.dataset.demoSkip, r = await run(() => api('/api/demo/advance', { ticker: t }), r => r.msg);
-  if (r && r.open) select(t);
+  if (r && r.open) { await refresh(); select(t); } // select with the new state: the old one may still show it in its roadshow
+});
+document.addEventListener('click', async e => { // the Exchange desk: any signed-in visitor can take the operator's seat, and leave it
+  const b = e.target.closest('#desk-btn, [data-demo-operator]'), on = !!b && b.id === 'desk-btn';
+  if (!b || on === owner) return;
+  if (await run(() => api('/api/demo/operator', { on }), on ? 'Demo: you’re the exchange operator now.' : 'Back to a regular account.')) { await refresh(); if (!on) setView('trade'); }
 });
 function curve(s) {
   const W = 560, H = 170, L = 52, B = 24, cap = r2(s.range[1] * MAX_OVER_RANGE), lo = s.range[0] * 0.98, hi = cap * 1.01;
