@@ -489,6 +489,12 @@
         const r = E.priceIPO(s, now); return { msg: r ? `${t} priced at ${E.money(r.price)}. ${r.sold.toLocaleString('en-US')} shares allocated.` : `${t} withdrawn: not enough demand.` }; }
       if (s.status === 'preopen') { E.openTrading(s, now); s.sim = true; return { msg: `${t} is trading.`, open: true }; }
       if (s.status === 'open' && !s.creatorId) { E.fileAsBefore(s, now); const q = s.quarters[s.quarters.length - 1]; return { msg: `${t} filed Q${s.quarters.length}: ${E.money(q.profit)} profit, a ${E.money(q.per)} dividend a share.` }; }
+      if (s.status === 'open') { // a creator's own listing: months pass with no report (its last report, or the open, moves back), and the charter's rules apply
+        const late = E.filingStatus(s, now).delinquent, days = late ? E.MISSED_REPORTS * E.FILING_DAYS + 1 : E.FILING_DAYS + E.GRACE_DAYS + 1, q = s.quarters[s.quarters.length - 1];
+        if (q) q.t = now - days * E.DAY; else s.opened = now - days * E.DAY;
+        if (!late) { E.haltIfLate(s, now); return { msg: `${t}: ${days} days with no report. The CX-Q is ${days - E.FILING_DAYS} days late, so trading is halted until it’s filed.` }; }
+        E.buyBackIfMissed(s, now); return { msg: `${t}: a second report missed, so the creator had to buy back every share at ${E.money(s.closePer)}. Shareholders were paid.` };
+      }
       fail(400, `${t} has no IPO step left to skip.`);
     }),
     'POST /api/report': ({ u, body }) => {
@@ -532,9 +538,12 @@
       const t = tickerOf(body.ticker), s = db.stocks[t];
       if (s && !(u.owner || s.creatorId === u.id)) fail(403, 'Only the creator or the exchange can buy back a company’s shares.');
       return act(t, x => {
-        const paid = E.buyBack(x, x.creatorId, 'the creator used the charter’s buyback right', Date.now());
+        const now = Date.now(), paid = E.buyBack(x, x.creatorId, 'the creator used the charter’s buyback right', now);
         const free = x.creatorId ? E.account(Object.values(db.stocks).map(y => y.ticker === t ? x : y), x.creatorId).free : 0;
-        if (free < -0.005) fail(400, `Buying back every share costs ${E.money(paid)}. After the business’s cash, that’s ${E.money(-free)} more than the creator has free.`);
+        if (free < -0.005) { // the server refuses here; a demo visitor's $10,000 can't cover a real-size buyback, so the demo adds the play money that's short
+          x.flows[x.creatorId] = E.r2((x.flows[x.creatorId] || 0) - free);
+          (x.pending ||= []).push({ ticker: t, uid: x.creatorId, kind: 'topup', qty: 0, price: 0, amount: E.r2(-free), t: now });
+        }
         return paid;
       }, idemOf(u, body, 'buyback', ['ticker']));
     },

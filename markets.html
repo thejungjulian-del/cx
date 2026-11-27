@@ -1049,7 +1049,7 @@ async function loadHistory(t) {
   if (panel === 'watch') renderStats(); // the performance strip needs the history
   if ((h.rows.length ? h.rows[h.rows.length - 1][0] : 0) < bySym(t).lastId) loadHistory(t); // more arrived while this was loading
 }
-const NOTIFY = { buy: 'trades', sell: 'trades', payout: 'payouts', closing: 'payouts', buyback: 'payouts', ipo: 'ipos', withdrawn: 'ipos', alert: 'alerts' }; // activity kind -> setting that controls its pop-up
+const NOTIFY = { buy: 'trades', sell: 'trades', payout: 'payouts', closing: 'payouts', buyback: 'payouts', ipo: 'ipos', withdrawn: 'ipos', alert: 'alerts', topup: 'payouts' }; // activity kind -> setting that controls its pop-up
 let sentAt = 0; // when this tab last sent an order: its own fills are already reported by the order's result, so don't repeat them
 const notified = new Set();
 // the n newest activity entries are the new ones: each gets its own pop-up, oldest first; a big burst is summed up after the first two
@@ -1086,6 +1086,7 @@ const describe = e => ({
   alert: `Price alert: ${e.ticker} traded at ${money(e.price)}, ${e.op} your ${money(e.target)}`,
   placed: `Placed: ${e.side} ${num(e.qty)} ${e.ticker} ${e.market ? 'at market' : 'at ' + money(e.price)}`,
   cancelled: `${num(e.qty)} ${e.ticker} ${e.why === 'reduced' ? 'taken off the order (made smaller)' : e.why === 'modified' ? 'moved to a new order' : e.why === 'market' ? 'not filled: a market order’s rest is cancelled' : e.why === 'closed' ? 'cancelled: the company closed' : e.why === 'bought back' ? 'cancelled: the creator bought back every share' : 'cancelled'}`,
+  topup: `Demo play money added for the ${e.ticker} buyback`,
   rejected: `Refused: ${e.side} ${num(e.qty)} ${e.ticker}. ${e.reason}`,
 }[e.kind] || e.kind);
 
@@ -1741,15 +1742,20 @@ function renderIPO() {
     ${steps(s)}${body}${demoSkip(s)}</div>`;
 }
 const SKIP = { review: 'approve it now', roadshow: 'close the book and price it', preopen: 'open trading', open: 'file next quarter’s earnings' };
-const demoSkip = s => SKIP[s.status] && !(s.status === 'open' && s.creatorId) ? '<p class="hint" style="margin:10px"><button type="button" class="ghost" data-demo-skip="' + esc(s.ticker) + '">Skip ahead: ' + SKIP[s.status] + '</button> Demo shortcut: no waiting for the exchange or the calendar.</p>' : '';
+// a creator's own listing files its own reports, so its skip is the missed-reports path: trading halts, then the forced buyback
+const skipTo = s => s.status === 'open' && s.creatorId ? (s.filing && s.filing.delinquent ? 'miss a second report (forced buyback)' : 'miss the next report (trading halts)') : SKIP[s.status];
+const demoSkip = s => skipTo(s) ? '<p class="hint" style="margin:10px"><button type="button" class="ghost" data-demo-skip="' + esc(s.ticker) + '">Skip ahead: ' + skipTo(s) + '</button> Demo shortcut: no waiting for the exchange or the calendar.</p>' : '';
 document.addEventListener('click', async e => { // a sample account: already open, straight to the welcome
   if (!e.target.closest('[data-demo-sample]')) return;
   if (await run(() => api('/api/demo/sample', {}))) { $('#auth').close(); await refresh(); }
 });
+let skipping = false; // one stage per skip: the second click of a double-click, or a click while one is still going, does nothing
 document.addEventListener('click', async e => {
-  const b = e.target.closest('[data-demo-skip]'); if (!b) return;
-  const t = b.dataset.demoSkip, r = await run(() => api('/api/demo/advance', { ticker: t }), r => r.msg);
-  if (r && r.open) { await refresh(); select(t); } // select with the new state: the old one may still show it in its roadshow
+  const b = e.target.closest('[data-demo-skip]'); if (!b || skipping || e.detail > 1) return;
+  const t = b.dataset.demoSkip; let r;
+  skipping = true;
+  try { r = await run(() => api('/api/demo/advance', { ticker: t }), r => r.msg); await refresh(); } finally { skipping = false; } // the next stage's button is drawn before another click counts
+  if (r && r.open) select(t);
 });
 document.addEventListener('click', async e => { // the Exchange desk: any signed-in visitor can take the operator's seat, and leave it
   const b = e.target.closest('#desk-btn, [data-demo-operator]'), on = !!b && b.id === 'desk-btn';
@@ -2981,7 +2987,7 @@ $('#buyback').addEventListener('submit', async e => {
   $('#cf-skip').parentElement.hidden = true; // no "don't ask again" for this one
   const ok = await ask(`Buy back every ${s.ticker} share?`, kv('Price a share', `<b>${money(p)}</b>`) + kv('Shares held by others', num(n)) + kv('Total', `<b>${money(all)}</b>`)
     + kv('From the business’s cash', money(cash)) + kv('From the creator’s account', money(all - cash))
-    + `<p class="hint">The ${E.BUYBACK_DAYS}-day average trade price plus ${E.BUYBACK_PREMIUM * 100}%. Holders must sell. Trading ends for good.</p>`, 'Buy back all shares', true);
+    + `<p class="hint">The ${E.BUYBACK_DAYS}-day average trade price plus ${E.BUYBACK_PREMIUM * 100}%. Holders must sell. Trading ends for good. Demo: if the creator’s free play money doesn’t cover their part, the demo adds the rest as play money.</p>`, 'Buy back all shares', true);
   $('#cf-skip').parentElement.hidden = false;
   if (ok) await run(() => api('/api/buyback', { ticker: s.ticker, rid: rid() }), paid => `${s.ticker} bought back. ${money(paid)} paid to shareholders.`);
 });
